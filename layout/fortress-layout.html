@@ -1,0 +1,1152 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>要塞（フォートレス）レイアウト設計図</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:      #07090e;
+      --panel:   #0b1220;
+      --border:  #1a3060;
+      --text:    #90b8d8;
+      --accent:  #ff7700;
+      --dim:     #3a5a7a;
+      --ok:      #44cc77;
+      --warn:    #ffcc00;
+      --ng:      #ff4444;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 13px;
+    }
+    header {
+      background: linear-gradient(90deg, #050810 0%, #0d1f3a 50%, #050810 100%);
+      border-bottom: 2px solid var(--accent);
+      padding: 14px 24px;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+    header h1 {
+      font-family: 'Orbitron', monospace;
+      font-size: 1.3em;
+      color: var(--accent);
+      text-shadow: 0 0 18px rgba(255,119,0,.6);
+      letter-spacing: .15em;
+    }
+    header .badge {
+      font-size: .65em;
+      color: var(--dim);
+      border: 1px solid var(--dim);
+      padding: 2px 8px;
+      letter-spacing: .15em;
+    }
+    .main-grid {
+      display: grid;
+      grid-template-columns: 360px 1fr;
+      gap: 2px;
+      background: #030508;
+      min-width: 1050px;
+    }
+    body { overflow-x: auto; }
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      padding: 14px;
+    }
+    .ptitle {
+      font-family: 'Orbitron', monospace;
+      font-size: .65em;
+      letter-spacing: .2em;
+      color: var(--accent);
+      text-transform: uppercase;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 12px;
+    }
+    /* floor tabs */
+    .tabs { display: flex; gap: 2px; margin-bottom: 10px; }
+    .tab {
+      flex: 1;
+      padding: 7px 2px;
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--dim);
+      font-family: 'Orbitron', monospace;
+      font-size: .62em;
+      cursor: pointer;
+      letter-spacing: .08em;
+      transition: all .15s;
+    }
+    .tab:hover { border-color: var(--accent); color: var(--text); }
+    .tab.active { background: var(--accent); color: #000; border-color: var(--accent); font-weight: 700; }
+    canvas { display: block; }
+    /* bottom calc section */
+    .bottom {
+      grid-column: 1 / -1;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      padding: 14px;
+    }
+    .calc-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .calc-card {
+      border: 1px solid rgba(255,119,0,.25);
+      background: rgba(255,119,0,.04);
+      padding: 10px 12px;
+    }
+    .calc-card .clabel {
+      font-size: .6em;
+      color: var(--dim);
+      letter-spacing: .1em;
+      margin-bottom: 4px;
+    }
+    .calc-card .cval {
+      font-family: 'Orbitron', monospace;
+      font-size: 1.05em;
+      color: var(--accent);
+    }
+    .calc-card .cunit { font-size: .7em; color: var(--dim); }
+    table { width: 100%; border-collapse: collapse; font-size: .75em; margin-top: 10px; }
+    th, td { padding: 6px 10px; border-bottom: 1px solid var(--border); text-align: left; }
+    th { font-family: 'Orbitron', monospace; color: var(--accent); font-size: .65em; letter-spacing: .1em; }
+    tr:hover td { background: rgba(255,119,0,.04); }
+    .ok  { color: var(--ok); font-weight: 700; }
+    .warn { color: var(--warn); font-weight: 700; }
+    .ng  { color: var(--ng); font-weight: 700; }
+    .section-row td { background: rgba(26,48,96,.4); color: var(--text); font-weight: 700; }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>🏗 要塞（フォートレス）— レイアウト設計図</h1>
+  <span class="badge">自動計算 ver.1.0</span>
+  <span class="badge" style="color:var(--ok); border-color:var(--ok);">5坪の秘密基地</span>
+</header>
+
+<div class="main-grid">
+  <!-- LEFT: 断面図 -->
+  <div class="panel">
+    <div class="ptitle">▌ 断面図（側面・高さ確認）</div>
+    <canvas id="elevCanvas" width="330" height="660"></canvas>
+  </div>
+
+  <!-- RIGHT: 平面図 -->
+  <div class="panel">
+    <div class="ptitle">▌ 各階 平面図</div>
+    <div class="tabs">
+      <button class="tab active" onclick="setFloor(0)">1階<br><span style="font-size:.8em">地下街区</span></button>
+      <button class="tab" onclick="setFloor(1)">2階<br><span style="font-size:.8em">中央広場</span></button>
+      <button class="tab" onclick="setFloor(2)">3階-左<br><span style="font-size:.8em">技術区（低）</span></button>
+      <button class="tab" onclick="setFloor(3)">3階-右<br><span style="font-size:.8em">技術区（高）</span></button>
+      <button class="tab" onclick="setFloor(4)">4階-左<br><span style="font-size:.8em">空港（低）</span></button>
+      <button class="tab" onclick="setFloor(5)">4階-右<br><span style="font-size:.8em">空港（高）</span></button>
+    </div>
+    <canvas id="planCanvas" width="660" height="560"></canvas>
+  </div>
+
+  <!-- BOTTOM: 計算結果 -->
+  <div class="bottom">
+    <div class="ptitle">▌ 自動計算結果 一覧</div>
+    <div class="calc-grid" id="calcCards"></div>
+    <table id="calcTable" style="margin-top:16px"></table>
+  </div>
+</div>
+
+<script>
+// ============================================================
+//  仕様定数（すべて mm）
+// ============================================================
+const S = {
+  // ラック
+  rackW: 915, rackD: 460,
+  rackInnerW: 835, rackInnerD: 385,
+
+  // 床板（カット後）1枚サイズ
+  boardW: 910, boardD: 840, boardT: 12,
+
+  // 2階のみフル2枚使用（1820×840mm）
+  board2FW: 1820,
+  // 2階道路幅（四周）
+  roadW: 200,
+  // 2階吹き抜けは自動計算 → board2FW - roadW*2, boardD - roadW*2
+  get atriumW() { return this.board2FW - this.roadW * 2; }, // 1420
+  get atriumD() { return this.boardD    - this.roadW * 2; }, // 440
+
+  // 背中合わせ合計奥行
+  get totalD() { return this.rackD * 2; }, // 920
+
+  // 各階の床面高さ（mm、地面から床板上面まで）
+  floors: [
+    { id:'1F',   label:'アンダーグラウンド・スラム', h: 200,  color:'#1a3d5e', dark:'#0a1d2e', boardW: 1820 },
+    { id:'2F',   label:'セントラル・ジャンクション', h: 500,  color:'#1a4d2a', dark:'#0a2d16', boardW: 1820 },
+    { id:'3F-L', label:'テクニカル・ラボ（左）',     h: 800,  color:'#4a4a14', dark:'#2a2a08' },
+    { id:'3F-R', label:'テクニカル・ラボ（右）',     h: 1100, color:'#5a3814', dark:'#2a1808' },
+    { id:'4F-L', label:'スカイ・ポート（左・低）',     h: 1400, color:'#14143a', dark:'#0a0a22' },
+    { id:'4F-R', label:'スカイ・ポート（右・高）',     h: 1700, color:'#1e1e50', dark:'#0e0e30' },
+  ],
+
+  // スロープ
+  slopeAngle: 30, // degrees
+  slopeW: 200,    // スロープ有効幅（mm）  ← RC車幅150+余裕50
+
+  // プラレール
+  railR:  216, railW: 38, railStraight: 214,
+
+  // 車両（実測/公称）
+  tomica: { w: 30, h: 40, l: 80,  name:'トミカ' },
+  miniZ:  { w: 70, h: 46, l: 167, name:'ラジコン(Mini-Z系)' },
+  lunch:  { w:150, h:140, l:190,  name:'ラジコン(1/24大型)' },
+
+  // エレベーター穴
+  elevW: 150, elevD: 150,
+};
+
+// ============================================================
+//  自動計算
+// ============================================================
+const rad = a => a * Math.PI / 180;
+
+function calcAll() {
+  const res = {};
+
+  // スロープ
+  res.slopeAngle = S.slopeAngle;
+
+  // 各フロア間ギャップ
+  res.gaps = [];
+  for (let i = 0; i < S.floors.length - 1; i++) {
+    const dH = S.floors[i+1].h - S.floors[i].h;
+    const slopeLen  = Math.round(dH / Math.sin(rad(S.slopeAngle)));
+    const slopeRun  = Math.round(dH / Math.tan(rad(S.slopeAngle)));
+    const clearH    = dH - S.boardT; // 有効高さ（天井クリアランス）
+    const okMiniZ   = clearH >= S.miniZ.h  ? 'ok' : clearH >= S.miniZ.h*0.9  ? 'warn' : 'ng';
+    const okLunch   = clearH >= S.lunch.h  ? 'ok' : clearH >= S.lunch.h*0.9  ? 'warn' : 'ng';
+    const okTomica  = clearH >= S.tomica.h ? 'ok' : 'ng';
+    res.gaps.push({
+      from: S.floors[i].id, to: S.floors[i+1].id,
+      dH, slopeLen, slopeRun, clearH,
+      okMiniZ, okLunch, okTomica
+    });
+  }
+
+  // プラレール楕円
+  const ov = S.railR + S.railW/2;
+  res.ovalW = Math.round(2 * ov);
+  res.ovalL = Math.round(2 * ov + 2 * S.railStraight);
+  res.ovalFitsW = res.ovalW <= S.boardD && res.ovalL <= S.boardW;
+
+  // ベニヤカット指示
+  res.boardW = S.boardW; res.boardD = S.boardD;
+
+  // スロープ幅クリアランス
+  res.slopeOkLunch  = S.slopeW >= S.lunch.w  ? 'ok' : 'ng';
+  res.slopeOkMiniZ  = S.slopeW >= S.miniZ.w  ? 'ok' : 'ok';
+  res.slopeOkTomica = S.slopeW >= S.tomica.w ? 'ok' : 'ok';
+
+  return res;
+}
+
+const CALC = calcAll();
+
+// ============================================================
+//  カードと表の描画
+// ============================================================
+function renderCalcCards() {
+  const cards = [
+    { label:'ベニヤ板（カット後）', val: `${S.boardW} × ${S.boardD}`, unit:'mm' },
+    { label:'スロープ長さ（1F→2F）', val: CALC.gaps[0].slopeLen, unit:'mm (30°)' },
+    { label:'スロープ水平距離', val: CALC.gaps[0].slopeRun, unit:'mm' },
+    { label:'スロープ有効幅', val: S.slopeW, unit:'mm' },
+    { label:'プラレール楕円 横', val: CALC.ovalW, unit:'mm' },
+    { label:'プラレール楕円 縦', val: CALC.ovalL, unit:'mm' },
+    { label:'2階ボード（フル2枚）', val: `${S.board2FW} × ${S.boardD}`, unit:'mm' },
+    { label:'2階 道路幅', val: S.roadW, unit:'mm（四周）' },
+    { label:'2階 吹き抜け開口', val: `${S.atriumW} × ${S.atriumD}`, unit:'mm（自動計算）' },
+    { label:'エレベーター穴', val: `${S.elevW} × ${S.elevD}`, unit:'mm' },
+  ];
+  document.getElementById('calcCards').innerHTML = cards.map(c => `
+    <div class="calc-card">
+      <div class="clabel">${c.label}</div>
+      <div class="cval">${c.val} <span class="cunit">${c.unit}</span></div>
+    </div>
+  `).join('');
+}
+
+function renderCalcTable() {
+  const rows = [];
+  // スロープ・クリアランス
+  rows.push(`<tr class="section-row"><td colspan="7">【スロープ・クリアランス一覧】</td></tr>`);
+  rows.push(`<tr><th>区間</th><th>高低差</th><th>スロープ長</th><th>水平距離</th><th>天井高</th><th>トミカ 通過？</th><th>ラジコン(小型) 通過？</th></tr>`);
+  for (const g of CALC.gaps) {
+    const toLabel = g.okTomica === 'ok' ? '● 問題なし' : g.okTomica === 'warn' ? '▲ 要確認' : '✕ 不可';
+    const rcLabel = g.okMiniZ  === 'ok' ? '● 問題なし' : g.okMiniZ  === 'warn' ? '▲ 要確認' : '✕ 不可';
+    rows.push(`<tr>
+      <td>${g.from} → ${g.to}</td>
+      <td>${g.dH} mm</td>
+      <td>${g.slopeLen} mm</td>
+      <td>${g.slopeRun} mm</td>
+      <td>${g.clearH} mm</td>
+      <td class="${g.okTomica}">${toLabel}</td>
+      <td class="${g.okMiniZ}">${rcLabel}</td>
+    </tr>`);
+  }
+
+  // 車両クリアランス
+  rows.push(`<tr class="section-row"><td colspan="7">【車両クリアランス基準値】</td></tr>`);
+  rows.push(`<tr><th>車両種類</th><th>幅</th><th>長さ</th><th>高さ</th><th>スロープ幅 ${S.slopeW}mm 通過？</th><th>1階 天井高 ${CALC.gaps[0].clearH}mm？</th><th>2階 天井高 ${CALC.gaps[1].clearH}mm？</th></tr>`);
+  for (const v of [S.tomica, S.miniZ, S.lunch]) {
+    const sw = S.slopeW >= v.w ? 'ok' : 'ng';
+    const c1 = CALC.gaps[0].clearH >= v.h ? 'ok' : (CALC.gaps[0].clearH >= v.h*0.9 ? 'warn' : 'ng');
+    const c2 = CALC.gaps[1].clearH >= v.h ? 'ok' : (CALC.gaps[1].clearH >= v.h*0.9 ? 'warn' : 'ng');
+    const fmtSw = sw === 'ok' ? '● 問題なし' : '✕ 要変更';
+    const fmtC1 = c1 === 'ok' ? '● 問題なし' : c1 === 'warn' ? '▲ 要確認' : '✕ 不可';
+    const fmtC2 = c2 === 'ok' ? '● 問題なし' : c2 === 'warn' ? '▲ 要確認' : '✕ 不可';
+    rows.push(`<tr>
+      <td>${v.name}</td>
+      <td>${v.w} mm</td>
+      <td>${v.l} mm</td>
+      <td>${v.h} mm</td>
+      <td class="${sw}">${fmtSw}</td>
+      <td class="${c1}">${fmtC1}</td>
+      <td class="${c2}">${fmtC2}</td>
+    </tr>`);
+  }
+
+  // プラレール
+  rows.push(`<tr class="section-row"><td colspan="7">【プラレール周回コース（1階）】</td></tr>`);
+  rows.push(`<tr><th>項目</th><th colspan="2">寸法</th><th colspan="2">床板に収まるか？</th><th colspan="2">備考</th></tr>`);
+  const fitsLabel = CALC.ovalFitsW ? '● 収まる' : '✕ はみ出る';
+  rows.push(`<tr>
+    <td>最小楕円コース</td>
+    <td colspan="2">${CALC.ovalW} mm × ${CALC.ovalL} mm</td>
+    <td colspan="2" class="${CALC.ovalFitsW ? 'ok':'ng'}">${fitsLabel}（床板 ${S.boardD}mm×${S.boardW}mm）</td>
+    <td colspan="2">曲線R＝${S.railR}mm ＋ 直線${S.railStraight}mm×2本</td>
+  </tr>`);
+
+  document.getElementById('calcTable').innerHTML = rows.join('');
+}
+
+// ============================================================
+//  断面図（エレベーション）の描画
+// ============================================================
+function drawElevation() {
+  const cv = document.getElementById('elevCanvas');
+  const ctx = cv.getContext('2d');
+  const W = cv.width, H = cv.height;
+  ctx.clearRect(0, 0, W, H);
+
+  // 描画エリア（padding）
+  const PAD = { l: 65, r: 30, t: 30, b: 45 };
+  const dW = W - PAD.l - PAD.r;
+  const dH = H - PAD.t - PAD.b;
+
+  // スケール: 高さ方向
+  const maxH = 1850;
+  const scY = dH / maxH; // px per mm (vertical)
+  // 幅方向は模式的に奥行を表示 (920mm)
+  const scX = dW / S.totalD;
+
+  // 座標変換（底から積み上げ）
+  const tx = x => PAD.l + x * scX;
+  const ty = y => PAD.t + dH - y * scY;
+
+  // 背景グリッド
+  ctx.strokeStyle = '#0f1e30';
+  ctx.lineWidth = 1;
+  for (let yg = 0; yg <= maxH; yg += 100) {
+    ctx.beginPath();
+    ctx.moveTo(PAD.l, ty(yg));
+    ctx.lineTo(W - PAD.r, ty(yg));
+    ctx.stroke();
+  }
+
+  // ラック柱（4本: 前後左右）
+  const pillars = [0, 25, S.totalD - 25, S.totalD]; // 奥行方向の位置
+  ctx.fillStyle = '#1a3060';
+  for (const p of pillars) {
+    ctx.fillRect(tx(p) - 4, ty(1550), 8, 1550 * scY);
+  }
+
+  // 地面
+  ctx.fillStyle = '#3a5a7a';
+  ctx.fillRect(PAD.l - 20, ty(0), dW + 30, 3);
+  ctx.fillStyle = '#3a5a7a';
+  ctx.font = '10px Share Tech Mono';
+  ctx.fillText('GL ±0', PAD.l - 60, ty(0) + 4);
+
+  // 各フロア
+  for (let i = 0; i < S.floors.length; i++) {
+    const f = S.floors[i];
+    const yTop = f.h;
+    const yBot = f.h - S.boardT;
+
+    // 床板
+    ctx.fillStyle = f.color;
+    ctx.fillRect(tx(40), ty(yTop), tx(S.totalD - 40) - tx(40), S.boardT * scY);
+
+    // 床板枠線
+    ctx.strokeStyle = '#4a8aaa';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(tx(40), ty(yTop), tx(S.totalD - 40) - tx(40), S.boardT * scY);
+
+    // 高さラベル（左）
+    ctx.fillStyle = '#ff7700';
+    ctx.font = 'bold 11px Share Tech Mono';
+    ctx.textAlign = 'right';
+    ctx.fillText(`${f.h}`, PAD.l - 8, ty(yTop) + 4);
+
+    // 階ID
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 10px Orbitron, monospace';
+    ctx.textAlign = 'left';
+    ctx.fillText(f.id, tx(45), ty(yTop) - 4);
+
+    // クリアランス矢印（下のフロアと比較）
+    if (i > 0) {
+      const clearH = f.h - S.floors[i-1].h - S.boardT;
+      const midY = (f.h + S.floors[i-1].h) / 2;
+      ctx.fillStyle = '#3a7a5a';
+      ctx.font = '9px Share Tech Mono';
+      ctx.textAlign = 'center';
+      ctx.fillText(`↕${clearH}mm`, tx(S.totalD - 50), ty(midY));
+    }
+  }
+
+  // スロープ線
+  ctx.setLineDash([4, 3]);
+  ctx.strokeStyle = '#ff7700';
+  ctx.lineWidth = 1.5;
+  for (let i = 0; i < S.floors.length - 1; i++) {
+    const g = CALC.gaps[i];
+    const x1 = tx(80), y1 = ty(S.floors[i].h);
+    const x2 = tx(80 + g.slopeRun * scX / scX * 0.6), y2 = ty(S.floors[i+1].h);
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.stroke();
+    ctx.fillStyle = '#ff9944';
+    ctx.font = '9px Share Tech Mono';
+    ctx.textAlign = 'left';
+    ctx.fillText(`${g.slopeLen}mm`, (x1 + x2) / 2 + 2, (y1 + y2) / 2 - 4);
+  }
+  ctx.setLineDash([]);
+
+  // 縦軸ラベル
+  ctx.save();
+  ctx.translate(12, ty(maxH / 2));
+  ctx.rotate(-Math.PI / 2);
+  ctx.fillStyle = '#3a6a9a';
+  ctx.font = '10px Share Tech Mono';
+  ctx.textAlign = 'center';
+  ctx.fillText('高さ（mm / 地面基準）', 0, 0);
+  ctx.restore();
+
+  // 奥行ラベル
+  ctx.fillStyle = '#3a6a9a';
+  ctx.font = '9px Share Tech Mono';
+  ctx.textAlign = 'center';
+  ctx.fillText(`← 奥行 ${S.totalD}mm (ラック背中合わせ) →`, tx(S.totalD / 2), H - 8);
+}
+
+// ============================================================
+//  平面図の描画
+// ============================================================
+let currentFloor = 0;
+
+function setFloor(idx) {
+  currentFloor = idx;
+  document.querySelectorAll('.tab').forEach((t, i) => t.classList.toggle('active', i === idx));
+  drawPlan(idx);
+}
+
+function drawPlan(floorIdx) {
+  const cv = document.getElementById('planCanvas');
+  const ctx = cv.getContext('2d');
+  const W = cv.width, H = cv.height;
+  ctx.clearRect(0, 0, W, H);
+
+  const f = S.floors[floorIdx];
+  const floorBW = f.boardW || S.boardW; // 2Fは1820、それ以外は910
+  const PAD = { l: 70, r: 40, t: 50, b: 60 };
+  const dW = W - PAD.l - PAD.r;
+  const dH = H - PAD.t - PAD.b;
+
+  // スケール（階ごとのボードサイズを描画エリアに合わせる）
+  const sc = Math.min(dW / floorBW, dH / S.boardD);
+  const bW = floorBW * sc;
+  const bD = S.boardD * sc;
+  const bX = PAD.l + (dW - bW) / 2;
+  const bY = PAD.t + (dH - bD) / 2;
+
+  // 座標変換
+  const tx = x => bX + x * sc;
+  const ty = y => bY + y * sc;
+
+  // グリッド（100mmごと）
+  ctx.strokeStyle = '#0e1a28';
+  ctx.lineWidth = 1;
+  for (let gx = 0; gx <= floorBW; gx += 100) {
+    ctx.beginPath();
+    ctx.moveTo(tx(gx), bY);
+    ctx.lineTo(tx(gx), bY + bD);
+    ctx.stroke();
+  }
+  for (let gy = 0; gy <= S.boardD; gy += 100) {
+    ctx.beginPath();
+    ctx.moveTo(bX, ty(gy));
+    ctx.lineTo(bX + bW, ty(gy));
+    ctx.stroke();
+  }
+
+  // ボード背景
+  ctx.fillStyle = f.dark;
+  ctx.fillRect(bX, bY, bW, bD);
+  ctx.strokeStyle = '#4a8aaa';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(bX, bY, bW, bD);
+
+  // 中央足場ライン（サポート位置）
+  ctx.setLineDash([4, 4]);
+  ctx.strokeStyle = '#5a7a9a';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(tx(0), ty(S.boardD / 2));
+  ctx.lineTo(tx(floorBW), ty(S.boardD / 2));
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = '#4a7a9a';
+  ctx.font = '9px Share Tech Mono';
+  ctx.textAlign = 'right';
+  ctx.fillText('▸ 中央足場', tx(floorBW) - 2, ty(S.boardD / 2) - 3);
+
+  // ラック支持ライン（奥行方向の両端40mm内側）
+  const suppY1 = 40 * sc;
+  const suppY2 = (S.boardD - 40) * sc;
+  ctx.setLineDash([2, 4]);
+  ctx.strokeStyle = '#2a4a6a';
+  ctx.lineWidth = 1;
+  for (const sy of [suppY1, suppY2]) {
+    ctx.beginPath();
+    ctx.moveTo(bX, bY + sy);
+    ctx.lineTo(bX + bW, bY + sy);
+    ctx.stroke();
+  }
+  ctx.setLineDash([]);
+
+  // 階別コンテンツ
+  switch (floorIdx) {
+    case 0: drawFloor1F(ctx, tx, ty, sc, bX, bY, bW, bD); break;
+    case 1: drawFloor2F(ctx, tx, ty, sc, bX, bY, bW, bD); break;
+    case 2: drawFloor3FL(ctx, tx, ty, sc, bX, bY, bW, bD); break;
+    case 3: drawFloor3FR(ctx, tx, ty, sc, bX, bY, bW, bD); break;
+    case 4: drawFloor4FL(ctx, tx, ty, sc, bX, bY, bW, bD); break;
+    case 5: drawFloor4FR(ctx, tx, ty, sc, bX, bY, bW, bD); break;
+  }
+
+  // 寸法線（下）
+  drawDimLine(ctx, bX, bY + bD + 20, bX + bW, bY + bD + 20, `${floorBW} mm`, '#ff7700');
+  // 寸法線（左）
+  drawDimLineV(ctx, bX - 20, bY, bX - 20, bY + bD, `${S.boardD} mm`, '#ff7700');
+
+  // タイトル
+  ctx.fillStyle = '#ffffff';
+  ctx.font = `bold 13px Orbitron, monospace`;
+  ctx.textAlign = 'center';
+  ctx.fillText(`${f.id}  ${f.label}`, W / 2, 24);
+  ctx.fillStyle = '#ff7700';
+  ctx.font = '11px Share Tech Mono';
+  ctx.fillText(`GL + ${f.h} mm`, W / 2, 40);
+}
+
+// ============================================================
+//  1F：アンダーグラウンド・スラム（フル 1820×840mm）
+// ============================================================
+function drawFloor1F(ctx, tx, ty, sc, bX, bY, bW, bD) {
+  // ====== 背景：薄暗い地下街 ======
+  ctx.fillStyle = '#0a1d2e';
+  ctx.fillRect(bX, bY, bW, bD);
+
+  // LEDサイバーパンク光（青紫のグラデーション雰囲気）
+  ctx.fillStyle = 'rgba(0, 80, 200, 0.07)';
+  ctx.fillRect(bX, bY, bW, bD);
+
+  // ====== 板継ぎ目（910mm地点） ======
+  ctx.setLineDash([3, 5]);
+  ctx.strokeStyle = '#2a4a6a';
+  ctx.lineWidth = 1;
+  const seamX = tx(S.boardW); // 910mm
+  ctx.beginPath();
+  ctx.moveTo(seamX, bY);
+  ctx.lineTo(seamX, bY + bD);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = '#2a4a6a';
+  ctx.font = '8px Share Tech Mono';
+  ctx.textAlign = 'center';
+  ctx.fillText('板継ぎ目 910mm', seamX, bY + 10);
+
+  // ====== プラレール楕円コース（中央やや左寄り） ======
+  // 1820mm幅を活かして大きめの楕円配置
+  const trackCX = tx(750);          // 中心X（左から750mm）
+  const trackCY = ty(S.boardD / 2); // 中心Y（上下中央）
+  const oRx = CALC.ovalL / 2 * sc;  // 水平半径（楕円の横）
+  const oRy = CALC.ovalW / 2 * sc;  // 垂直半径（楕円の縦）
+
+  // 軌道本体（線幅＝レール幅）
+  ctx.strokeStyle = '#2255aa';
+  ctx.lineWidth = S.railW * sc;
+  ctx.setLineDash([]);
+  ctx.beginPath();
+  ctx.ellipse(trackCX, trackCY, oRx, oRy, 0, 0, Math.PI * 2);
+  ctx.stroke();
+
+  // 軌道上面（明るい青線）
+  ctx.strokeStyle = '#4499ff';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.ellipse(trackCX, trackCY, oRx, oRy, 0, 0, Math.PI * 2);
+  ctx.stroke();
+
+  // 軌道ラベル
+  ctx.fillStyle = '#6abaff';
+  ctx.font = '10px Share Tech Mono';
+  ctx.textAlign = 'center';
+  ctx.fillText(`プラレール 楕円コース  ${CALC.ovalL} × ${CALC.ovalW} mm`, trackCX, trackCY - oRy - 10);
+
+  // ====== IoT 自動踏切（楕円右端付近） ======
+  // 踏切はラジコンが横断できるようにレール右端に配置
+  const crX = trackCX + oRx + 30 * sc;
+  const crY = trackCY;
+  ctx.fillStyle = '#cc2222';
+  roundRect(ctx, crX - 22 * sc, crY - 35 * sc, 44 * sc, 70 * sc, 4);
+  ctx.fill();
+  ctx.strokeStyle = '#ff6666';
+  ctx.lineWidth = 1.5;
+  roundRect(ctx, crX - 22 * sc, crY - 35 * sc, 44 * sc, 70 * sc, 4);
+  ctx.stroke();
+  ctx.fillStyle = '#ffffff';
+  ctx.font = `bold ${Math.max(8, 9 * sc / 0.3)}px Share Tech Mono`;
+  ctx.font = 'bold 9px Share Tech Mono';
+  ctx.textAlign = 'center';
+  ctx.fillText('IoT', crX, crY - 20 * sc);
+  ctx.fillText('自動踏切', crX, crY - 8 * sc);
+  ctx.fillStyle = '#ff9999';
+  ctx.font = '8px Share Tech Mono';
+  ctx.fillText('センサー付き', crX, crY + 6 * sc);
+
+  // 踏切スロープ（ラジコン横断用）
+  ctx.setLineDash([4, 3]);
+  ctx.strokeStyle = '#ff6600';
+  ctx.lineWidth = 1.5;
+  // レール横断方向の破線
+  ctx.beginPath();
+  ctx.moveTo(crX, trackCY - oRy - 30 * sc);
+  ctx.lineTo(crX, trackCY + oRy + 30 * sc);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = '#ff9933';
+  ctx.font = '8px Share Tech Mono';
+  ctx.textAlign = 'left';
+  ctx.fillText('← ラジコン横断スロープ', crX + 4 * sc, trackCY - oRy - 16 * sc);
+
+  // ====== 右側エリア：ラジコン補助コース ======
+  const rcAreaX = tx(1300);
+  const rcAreaW = tx(1820) - tx(1300);
+  ctx.fillStyle = 'rgba(60,40,10,0.4)';
+  ctx.fillRect(rcAreaX, bY + 40 * sc, rcAreaW - 20 * sc, bD - 80 * sc);
+  ctx.strokeStyle = '#886644';
+  ctx.lineWidth = 1;
+  ctx.strokeRect(rcAreaX, bY + 40 * sc, rcAreaW - 20 * sc, bD - 80 * sc);
+  ctx.fillStyle = '#aa8855';
+  ctx.font = '9px Share Tech Mono';
+  ctx.textAlign = 'center';
+  ctx.fillText('ラジコン', rcAreaX + (rcAreaW - 20 * sc) / 2, bY + bD / 2 - 8);
+  ctx.fillText('補助エリア', rcAreaX + (rcAreaW - 20 * sc) / 2, bY + bD / 2 + 6);
+
+  // ====== エレベーター穴（左下） ======
+  const evX = tx(60), evY = ty(S.boardD - 60);
+  ctx.fillStyle = '#111122';
+  ctx.strokeStyle = '#ff7700';
+  ctx.lineWidth = 2;
+  ctx.fillRect(evX, evY, S.elevW * sc, S.elevD * sc);
+  ctx.strokeRect(evX, evY, S.elevW * sc, S.elevD * sc);
+  ctx.fillStyle = '#ff9900';
+  ctx.font = '9px Share Tech Mono';
+  ctx.textAlign = 'center';
+  ctx.fillText('昇降機', evX + S.elevW * sc / 2, evY + S.elevD * sc / 2 + 4);
+  ctx.fillText(`${S.elevW}×${S.elevD}mm`, evX + S.elevW * sc / 2, evY - 4);
+
+  // ====== スロープ口（2階へ）======
+  drawSlopeEntry(ctx, tx, ty, sc, S.board2FW - 10, S.boardD * 0.3, '2階↑', '#ff9933', 'right');
+
+  // ====== 寸法ライン ======
+  drawDimLine(ctx, tx(0), ty(S.boardD / 2) + oRy + 24, tx(S.board2FW), ty(S.boardD / 2) + oRy + 24, `全幅 ${S.board2FW}mm（2枚並列）`, '#4a7aaa');
+}
+
+// ============================================================
+//  2F：セントラル・ジャンクション（フル 1820×840mm）
+// ============================================================
+function drawFloor2F(ctx, tx, ty, sc, bX, bY, bW, bD) {
+  const RW = S.roadW; // 道路幅 200mm
+
+  // 自動計算
+  const atW = S.atriumW * sc; // (1820 - 200*2) * sc = 1420 * sc
+  const atH = S.atriumD * sc; // (840  - 200*2) * sc = 440  * sc
+  const atX = bX + RW * sc;
+  const atY = bY + RW * sc;
+
+  // ====== 道路面（全面アスファルト） ======
+  ctx.fillStyle = '#1e1e1e';
+  ctx.fillRect(bX, bY, bW, bD);
+
+  // ====== 吹き抜け（中央の穴） ======
+  ctx.fillStyle = '#050510';
+  ctx.fillRect(atX, atY, atW, atH);
+
+  // 吹き抜け枠（点線オレンジ）
+  ctx.strokeStyle = '#ff7700';
+  ctx.lineWidth = 2;
+  ctx.setLineDash([5, 4]);
+  ctx.strokeRect(atX, atY, atW, atH);
+  ctx.setLineDash([]);
+
+  // 吹き抜けラベル
+  ctx.fillStyle = '#ff9933';
+  ctx.font = 'bold 11px Share Tech Mono';
+  ctx.textAlign = 'center';
+  ctx.fillText(`吹き抜け開口  ${S.atriumW} × ${S.atriumD} mm`, atX + atW / 2, atY + atH / 2 - 10);
+  ctx.font = '10px Share Tech Mono';
+  ctx.fillStyle = '#cc6600';
+  ctx.fillText('↓ 1階 踏切・プラレールを見下ろし ↓', atX + atW / 2, atY + atH / 2 + 8);
+
+  // ====== 道路（ロの字走路）======
+  // 道路中心線（破線・白）
+  ctx.setLineDash([10, 10]);
+  ctx.strokeStyle = '#ffffff';
+  ctx.lineWidth = 1;
+
+  // 上走路の中心線
+  const topMid = ty(RW / 2);
+  ctx.beginPath(); ctx.moveTo(bX + RW * sc, topMid); ctx.lineTo(bX + bW - RW * sc, topMid); ctx.stroke();
+
+  // 下走路の中心線
+  const botMid = ty(S.boardD - RW / 2);
+  ctx.beginPath(); ctx.moveTo(bX + RW * sc, botMid); ctx.lineTo(bX + bW - RW * sc, botMid); ctx.stroke();
+
+  // 左走路の中心線
+  const leftMid = tx(RW / 2);
+  ctx.beginPath(); ctx.moveTo(leftMid, bY + RW * sc); ctx.lineTo(leftMid, bY + bD - RW * sc); ctx.stroke();
+
+  // 右走路の中心線
+  const rightMid = tx(S.board2FW - RW / 2);
+  ctx.beginPath(); ctx.moveTo(rightMid, bY + RW * sc); ctx.lineTo(rightMid, bY + bD - RW * sc); ctx.stroke();
+
+  ctx.setLineDash([]);
+
+  // 道路境界線（内側・白実線）
+  ctx.strokeStyle = '#888888';
+  ctx.lineWidth = 1;
+  ctx.strokeRect(atX, atY, atW, atH); // 内縁（吹き抜け枠と同一）
+
+  // 道路境界線（外側）
+  ctx.strokeStyle = '#666666';
+  ctx.lineWidth = 1.5;
+  ctx.strokeRect(bX + 2, bY + 2, bW - 4, bD - 4);
+
+  // ====== 道路幅寸法ラベル ======
+  ctx.fillStyle = '#44cc88';
+  ctx.font = '9px Share Tech Mono';
+  ctx.textAlign = 'center';
+  // 上走路
+  ctx.fillText(`道路幅 ${RW}mm`, bX + bW / 2, topMid - 12);
+  // 左走路
+  ctx.save();
+  ctx.translate(leftMid - 10, bY + bD / 2);
+  ctx.rotate(-Math.PI / 2);
+  ctx.fillText(`道路幅 ${RW}mm`, 0, 0);
+  ctx.restore();
+
+  // ====== 板継ぎ目（910mm中央） ======
+  ctx.setLineDash([3, 5]);
+  ctx.strokeStyle = '#3a5a7a';
+  ctx.lineWidth = 1;
+  const seamX = tx(S.boardW); // 910mm地点
+  ctx.beginPath();
+  ctx.moveTo(seamX, bY);
+  ctx.lineTo(seamX, bY + bD);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = '#3a5a7a';
+  ctx.font = '8px Share Tech Mono';
+  ctx.textAlign = 'center';
+  ctx.fillText('板継ぎ目 910mm', seamX, bY + 10);
+
+  // ====== スロープ入口 ======
+  // 1Fから（左辺・上下）
+  drawSlopeEntry(ctx, tx, ty, sc, 10,                   S.boardD * 0.3, '1階↓', '#4499ff', 'left');
+  // 3Fへ（右辺）
+  drawSlopeEntry(ctx, tx, ty, sc, S.board2FW - 10,      S.boardD * 0.5, '3階↑', '#ff9933', 'right');
+
+  // ====== 寸法ライン（全幅・開口幅） ======
+  // 開口幅
+  drawDimLine(ctx, atX, atY - 16, atX + atW, atY - 16, `吹き抜け ${S.atriumW}mm`, '#ff7700');
+  // 開口奥行
+  drawDimLineV(ctx, atX + atW + 12, atY, atX + atW + 12, atY + atH, `${S.atriumD}mm`, '#ff7700');
+}
+
+// ============================================================
+//  3F-L：テクニカル・ラボ（左ラック・低い段 800mm）910×840mm
+// ============================================================
+function drawFloor3FL(ctx, tx, ty, sc, bX, bY, bW, bD) {
+  ctx.fillStyle = '#2a2a08';
+  ctx.fillRect(bX, bY, bW, bD);
+
+  // 板タイトル帯
+  ctx.fillStyle = 'rgba(100,100,20,0.25)';
+  ctx.fillRect(bX, bY, bW, 26);
+  ctx.fillStyle = '#aaaa44';
+  ctx.font = 'bold 10px Share Tech Mono';
+  ctx.textAlign = 'center';
+  ctx.fillText('3F-L  左ラック・低い段  GL+800mm  （910×840mm）', bX + bW / 2, bY + 17);
+
+  // スケボーパーク風障害物ゾーン（中央下）
+  ctx.fillStyle = 'rgba(100,80,20,0.35)';
+  roundRect(ctx, tx(50), ty(S.boardD - 80), tx(860) - tx(50), 100 * sc, 6);
+  ctx.fill();
+  ctx.strokeStyle = '#aaaa44';
+  ctx.lineWidth = 1;
+  roundRect(ctx, tx(50), ty(S.boardD - 80), tx(860) - tx(50), 100 * sc, 6);
+  ctx.stroke();
+  ctx.fillStyle = '#cccc66';
+  ctx.font = '10px Share Tech Mono';
+  ctx.textAlign = 'center';
+  ctx.fillText('スケボーパーク 障害物ゾーン（3Dプリンター製）', tx(455), ty(S.boardD - 120) + 6);
+
+  // トンネル区画（中段）
+  ctx.fillStyle = '#0e0e0e';
+  ctx.fillRect(tx(120), ty(480), tx(520) - tx(120), 110 * sc);
+  ctx.strokeStyle = '#666666';
+  ctx.lineWidth = 1.5;
+  ctx.strokeRect(tx(120), ty(480), tx(520) - tx(120), 110 * sc);
+  ctx.fillStyle = '#888888';
+  ctx.font = '10px Share Tech Mono';
+  ctx.textAlign = 'center';
+  ctx.fillText('トンネル区画（FPV走行・死角）', tx(320), ty(480) + 55 * sc);
+
+  // エレベーター穴（左下）
+  const evX = tx(40), evY = ty(S.boardD - 50);
+  ctx.fillStyle = '#111122';
+  ctx.strokeStyle = '#ff7700';
+  ctx.lineWidth = 2;
+  ctx.fillRect(evX, evY, S.elevW * sc, S.elevD * sc);
+  ctx.strokeRect(evX, evY, S.elevW * sc, S.elevD * sc);
+  ctx.fillStyle = '#ff9900';
+  ctx.font = '9px Share Tech Mono';
+  ctx.textAlign = 'center';
+  ctx.fillText('昇降機', evX + S.elevW * sc / 2, evY + S.elevD * sc / 2 + 4);
+  ctx.fillText('↕1階', evX + S.elevW * sc / 2, evY + S.elevD * sc / 2 + 16);
+
+  // スロープ口
+  drawSlopeEntry(ctx, tx, ty, sc, 10,           S.boardD * 0.45, '2階↓', '#4499ff', 'left');
+  drawSlopeEntry(ctx, tx, ty, sc, S.boardW - 10, S.boardD * 0.45, '4F-L↑', '#ff9933', 'right');
+
+  // 寸法
+  drawDimLine(ctx, tx(50), ty(S.boardD - 80) + 110 * sc + 12,
+              tx(860), ty(S.boardD - 80) + 110 * sc + 12, '810mm', '#aaaa44');
+}
+
+// ============================================================
+//  3F-R：テクニカル・ラボ（右ラック・高い段 1100mm）910×840mm
+// ============================================================
+function drawFloor3FR(ctx, tx, ty, sc, bX, bY, bW, bD) {
+  ctx.fillStyle = '#2a1808';
+  ctx.fillRect(bX, bY, bW, bD);
+
+  // 板タイトル帯
+  ctx.fillStyle = 'rgba(100,60,20,0.3)';
+  ctx.fillRect(bX, bY, bW, 26);
+  ctx.fillStyle = '#cc8844';
+  ctx.font = 'bold 10px Share Tech Mono';
+  ctx.textAlign = 'center';
+  ctx.fillText('3F-R  右ラック・高い段  GL+1100mm  （910×840mm）', bX + bW / 2, bY + 17);
+
+  // ガタガタ道ゾーン（下半分）
+  ctx.fillStyle = 'rgba(80,40,10,0.45)';
+  roundRect(ctx, tx(40), ty(S.boardD - 70), tx(870) - tx(40), 110 * sc, 6);
+  ctx.fill();
+  ctx.strokeStyle = '#aa6622';
+  ctx.lineWidth = 1;
+  roundRect(ctx, tx(40), ty(S.boardD - 70), tx(870) - tx(40), 110 * sc, 6);
+  ctx.stroke();
+  ctx.fillStyle = '#cc8844';
+  ctx.font = '10px Share Tech Mono';
+  ctx.textAlign = 'center';
+  ctx.fillText('ガタガタ道 / 土木現場ゾーン（3Dプリンター製）', tx(455), ty(S.boardD - 110) + 6);
+
+  // トンネル区画（中段）
+  ctx.fillStyle = '#0e0e0e';
+  ctx.fillRect(tx(250), ty(480), tx(680) - tx(250), 110 * sc);
+  ctx.strokeStyle = '#666666';
+  ctx.lineWidth = 1.5;
+  ctx.strokeRect(tx(250), ty(480), tx(680) - tx(250), 110 * sc);
+  ctx.fillStyle = '#888888';
+  ctx.font = '10px Share Tech Mono';
+  ctx.textAlign = 'center';
+  ctx.fillText('トンネル区画（FPV走行・死角）', tx(465), ty(480) + 55 * sc);
+
+  // スロープ口
+  drawSlopeEntry(ctx, tx, ty, sc, 10,           S.boardD * 0.45, '2階↓', '#4499ff', 'left');
+  drawSlopeEntry(ctx, tx, ty, sc, S.boardW - 10, S.boardD * 0.45, '4F-R↑', '#ff9933', 'right');
+}
+
+// ============================================================
+//  4F-L：スカイ・ポート（左ラック・低い段 1400mm）910×840mm
+// ============================================================
+function drawFloor4FL(ctx, tx, ty, sc, bX, bY, bW, bD) {
+  ctx.fillStyle = '#0a0a22';
+  ctx.fillRect(bX, bY, bW, bD);
+
+  // 板タイトル帯
+  ctx.fillStyle = 'rgba(40,40,100,0.3)';
+  ctx.fillRect(bX, bY, bW, 26);
+  ctx.fillStyle = '#8888cc';
+  ctx.font = 'bold 10px Share Tech Mono';
+  ctx.textAlign = 'center';
+  ctx.fillText('4F-L  左ラック・低い段  GL+1400mm  （910×840mm）', bX + bW / 2, bY + 17);
+
+  // エプロン（上半分）
+  ctx.fillStyle = 'rgba(60,60,160,0.2)';
+  ctx.fillRect(tx(30), ty(S.boardD * 0.15), tx(880) - tx(30), 160 * sc);
+  ctx.strokeStyle = '#6666aa';
+  ctx.lineWidth = 1;
+  ctx.strokeRect(tx(30), ty(S.boardD * 0.15), tx(880) - tx(30), 160 * sc);
+  ctx.fillStyle = '#8888bb';
+  ctx.font = '10px Share Tech Mono';
+  ctx.textAlign = 'center';
+  ctx.fillText('エプロン（駐機エリア）', tx(455), ty(S.boardD * 0.15) + 80 * sc);
+
+  // 滑走路（中央〜下）
+  const rwX = tx(30), rwY = ty(S.boardD * 0.65), rwW = (S.boardW - 60) * sc, rwH = 130 * sc;
+  ctx.fillStyle = '#14142e';
+  ctx.fillRect(rwX, rwY, rwW, rwH);
+  ctx.strokeStyle = '#aaaaff';
+  ctx.lineWidth = 1.5;
+  ctx.strokeRect(rwX, rwY, rwW, rwH);
+  // 中央線
+  ctx.setLineDash([16, 12]);
+  ctx.strokeStyle = '#ffff44';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(rwX + 8, rwY + rwH / 2);
+  ctx.lineTo(rwX + rwW - 8, rwY + rwH / 2);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = '#aaaaff';
+  ctx.font = '10px Share Tech Mono';
+  ctx.textAlign = 'center';
+  ctx.fillText(`✈ 滑走路  ${S.boardW - 60}mm`, tx(455), rwY - 10);
+
+  // ゴールライン
+  ctx.fillStyle = '#ff4444';
+  ctx.fillRect(tx(S.boardW - 50), rwY, 5, rwH);
+  ctx.fillStyle = '#ff4444';
+  ctx.font = 'bold 10px Share Tech Mono';
+  ctx.textAlign = 'right';
+  ctx.fillText('ゴール！', tx(S.boardW - 58), rwY + rwH / 2 - 4);
+
+  // スロープ口
+  drawSlopeEntry(ctx, tx, ty, sc, 10,            S.boardD * 0.45, '3F-L↓', '#4499ff', 'left');
+  drawSlopeEntry(ctx, tx, ty, sc, S.boardW - 10, S.boardD * 0.45, '（終端）', '#555588', 'right');
+
+  // 寸法
+  drawDimLine(ctx, rwX, rwY + rwH + 12, rwX + rwW, rwY + rwH + 12, `${S.boardW - 60}mm`, '#aaaaff');
+}
+
+// ============================================================
+//  4F-R：スカイ・ポート（右ラック・高い段 1700mm）910×840mm
+// ============================================================
+function drawFloor4FR(ctx, tx, ty, sc, bX, bY, bW, bD) {
+  ctx.fillStyle = '#0c0c2e';
+  ctx.fillRect(bX, bY, bW, bD);
+
+  // 板タイトル帯
+  ctx.fillStyle = 'rgba(60,60,140,0.3)';
+  ctx.fillRect(bX, bY, bW, 26);
+  ctx.fillStyle = '#aaaaff';
+  ctx.font = 'bold 10px Share Tech Mono';
+  ctx.textAlign = 'center';
+  ctx.fillText('4F-R  右ラック・高い段  GL+1700mm  （910×840mm）', bX + bW / 2, bY + 17);
+
+  // ターミナルビル（右上）
+  ctx.fillStyle = 'rgba(60,60,180,0.5)';
+  roundRect(ctx, tx(650), ty(S.boardD * 0.1), 200 * sc, 120 * sc, 8);
+  ctx.fill();
+  ctx.strokeStyle = '#aaaaff';
+  ctx.lineWidth = 1.5;
+  roundRect(ctx, tx(650), ty(S.boardD * 0.1), 200 * sc, 120 * sc, 8);
+  ctx.stroke();
+  ctx.fillStyle = '#ccccff';
+  ctx.font = 'bold 10px Share Tech Mono';
+  ctx.textAlign = 'center';
+  ctx.fillText('ターミナルビル', tx(750), ty(S.boardD * 0.1) + 60 * sc);
+
+  // メインエプロン（上中）
+  ctx.fillStyle = 'rgba(80,80,200,0.18)';
+  ctx.fillRect(tx(30), ty(S.boardD * 0.15), tx(630) - tx(30), 160 * sc);
+  ctx.strokeStyle = '#8888cc';
+  ctx.lineWidth = 1;
+  ctx.strokeRect(tx(30), ty(S.boardD * 0.15), tx(630) - tx(30), 160 * sc);
+  ctx.fillStyle = '#aaaacc';
+  ctx.font = '10px Share Tech Mono';
+  ctx.textAlign = 'center';
+  ctx.fillText('メインエプロン（駐機エリア）', tx(330), ty(S.boardD * 0.15) + 80 * sc);
+
+  // メイン滑走路（中央〜下）
+  const rwX = tx(30), rwY = ty(S.boardD * 0.65), rwW = (S.boardW - 60) * sc, rwH = 130 * sc;
+  ctx.fillStyle = '#18183a';
+  ctx.fillRect(rwX, rwY, rwW, rwH);
+  ctx.strokeStyle = '#ccccff';
+  ctx.lineWidth = 1.5;
+  ctx.strokeRect(rwX, rwY, rwW, rwH);
+  // 中央線
+  ctx.setLineDash([16, 12]);
+  ctx.strokeStyle = '#ffff44';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(rwX + 8, rwY + rwH / 2);
+  ctx.lineTo(rwX + rwW - 8, rwY + rwH / 2);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = '#ccccff';
+  ctx.font = '10px Share Tech Mono';
+  ctx.textAlign = 'center';
+  ctx.fillText(`✈ メイン滑走路  ${S.boardW - 60}mm`, tx(455), rwY - 10);
+
+  // 最終ゴールライン
+  ctx.fillStyle = '#ff2222';
+  ctx.fillRect(tx(S.boardW - 50), rwY, 6, rwH);
+  ctx.fillStyle = '#ff4444';
+  ctx.font = 'bold 10px Share Tech Mono';
+  ctx.textAlign = 'right';
+  ctx.fillText('最終ゴール！', tx(S.boardW - 60), rwY + rwH / 2 - 5);
+
+  // スロープ口
+  drawSlopeEntry(ctx, tx, ty, sc, 10,            S.boardD * 0.45, '3F-R↓', '#4499ff', 'left');
+  drawSlopeEntry(ctx, tx, ty, sc, S.boardW - 10, S.boardD * 0.45, '（頂上）', '#ffff44', 'right');
+
+  // 寸法
+  drawDimLine(ctx, rwX, rwY + rwH + 12, rwX + rwW, rwY + rwH + 12, `${S.boardW - 60}mm`, '#ccccff');
+}
+
+// ============================================================
+//  ユーティリティ
+// ============================================================
+function drawSlopeEntry(ctx, tx, ty, sc, xMm, yMm, label, color, side) {
+  const x = tx(xMm), y = ty(yMm);
+  const w = 12, h = S.slopeW * sc;
+  ctx.fillStyle = color;
+  ctx.globalAlpha = 0.7;
+  if (side === 'left') {
+    ctx.fillRect(x - w / 2, y - h / 2, w, h);
+  } else {
+    ctx.fillRect(x - w / 2, y - h / 2, w, h);
+  }
+  ctx.globalAlpha = 1;
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 1.5;
+  if (side === 'left') {
+    ctx.strokeRect(x - w / 2, y - h / 2, w, h);
+  } else {
+    ctx.strokeRect(x - w / 2, y - h / 2, w, h);
+  }
+  ctx.fillStyle = color;
+  ctx.font = 'bold 9px Share Tech Mono';
+  ctx.textAlign = side === 'left' ? 'left' : 'right';
+  ctx.fillText(label, side === 'left' ? x + w : x - w, y);
+  ctx.fillStyle = '#888';
+  ctx.font = '8px Share Tech Mono';
+  ctx.textAlign = side === 'left' ? 'left' : 'right';
+  ctx.fillText(`幅${S.slopeW}mm`, side === 'left' ? x + w : x - w, y + 12);
+}
+
+function drawDimLine(ctx, x1, y, x2, y2, label, color) {
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(x1, y); ctx.lineTo(x1, y2 || y);
+  ctx.moveTo(x1, y); ctx.lineTo(x2, y);
+  ctx.moveTo(x2, y); ctx.lineTo(x2, y2 || y);
+  ctx.stroke();
+  // arrows
+  ctx.fillStyle = color;
+  arrowHead(ctx, x1, y, 'right');
+  arrowHead(ctx, x2, y, 'left');
+  ctx.font = '9px Share Tech Mono';
+  ctx.textAlign = 'center';
+  ctx.fillText(label, (x1 + x2) / 2, y - 4);
+}
+
+function drawDimLineV(ctx, x, y1, x2, y2, label, color) {
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(x, y1); ctx.lineTo(x2 || x, y1);
+  ctx.moveTo(x, y1); ctx.lineTo(x, y2);
+  ctx.moveTo(x, y2); ctx.lineTo(x2 || x, y2);
+  ctx.stroke();
+  ctx.fillStyle = color;
+  arrowHead(ctx, x, y1, 'down');
+  arrowHead(ctx, x, y2, 'up');
+  ctx.save();
+  ctx.translate(x - 8, (y1 + y2) / 2);
+  ctx.rotate(-Math.PI / 2);
+  ctx.font = '9px Share Tech Mono';
+  ctx.textAlign = 'center';
+  ctx.fillText(label, 0, 0);
+  ctx.restore();
+}
+
+function arrowHead(ctx, x, y, dir) {
+  ctx.beginPath();
+  if (dir === 'right') { ctx.moveTo(x + 6, y); ctx.lineTo(x, y - 3); ctx.lineTo(x, y + 3); }
+  else if (dir === 'left')  { ctx.moveTo(x - 6, y); ctx.lineTo(x, y - 3); ctx.lineTo(x, y + 3); }
+  else if (dir === 'down')  { ctx.moveTo(x, y + 6); ctx.lineTo(x - 3, y); ctx.lineTo(x + 3, y); }
+  else if (dir === 'up')    { ctx.moveTo(x, y - 6); ctx.lineTo(x - 3, y); ctx.lineTo(x + 3, y); }
+  ctx.fill();
+}
+
+function roundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+}
+
+// ============================================================
+//  初期化
+// ============================================================
+renderCalcCards();
+renderCalcTable();
+drawElevation();
+drawPlan(0);
+</script>
+</body>
+</html>

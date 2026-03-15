@@ -1,0 +1,15 @@
+# 依存関係
+node_modules/
+
+# ログ・キャッシュ
+*.log
+.cache/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# エディタ
+.vscode/
+*.swp
+*~
