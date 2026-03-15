@@ -150,7 +150,7 @@
       <button class="tab" onclick="setFloor(2)">3階-左<br><span style="font-size:.8em">町づくり</span></button>
       <button class="tab" onclick="setFloor(3)">3階-右<br><span style="font-size:.8em">町づくり</span></button>
       <button class="tab" onclick="setFloor(4)">4階-左<br><span style="font-size:.8em">空港</span></button>
-      <button class="tab" onclick="setFloor(5)">4階-右<br><span style="font-size:.8em">空港</span></button>
+      <button class="tab" onclick="setFloor(5)">4階-右<br><span style="font-size:.8em">物流拠点</span></button>
     </div>
     <canvas id="planCanvas" width="800" height="560"></canvas>
   </div>
@@ -190,10 +190,10 @@ const S = {
   floors: [
     { id:'1F',   label:'下道サーキット（プラレール周遊・踏切・車庫）', h: 200,  color:'#1a3d5e', dark:'#0a1d2e', boardW: 1820 },
     { id:'2F',   label:'サーキットコース（1F/3Fへ車線変更）', h: 500,  color:'#1a4d2a', dark:'#0a2d16', boardW: 1820 },
-    { id:'3F-L', label:'町づくりエリア（商業・信号・高低差・スケボー・土木・ロジ）', h: 800,  color:'#4a4a14', dark:'#2a2a08' },
-    { id:'3F-R', label:'町づくりエリア（同上・作りこみ）',     h: 1100, color:'#5a3814', dark:'#2a1808' },
-    { id:'4F-L', label:'空港（シンプル）',     h: 1400, color:'#14143a', dark:'#0a0a22' },
-    { id:'4F-R', label:'空港（シンプル）',     h: 1700, color:'#1e1e50', dark:'#0e0e30' },
+    { id:'3F-L', label:'町づくりエリア（商業・信号・高低差・スケボー・土木）', h: 800,  color:'#4a4a14', dark:'#2a2a08' },
+    { id:'3F-R', label:'町づくりエリア（商業・公園・交差点・土木）',           h: 1100, color:'#5a3814', dark:'#2a1808' },
+    { id:'4F-L', label:'空港（シンプル）',                                     h: 1400, color:'#14143a', dark:'#0a0a22' },
+    { id:'4F-R', label:'物流拠点（3Fロジ移設・倉庫・搬送・空港連絡）',         h: 1700, color:'#1a2518', dark:'#0d1810' },
   ],
 
   // スロープ
@@ -966,20 +966,24 @@ function drawFloor3FL(ctx, tx, ty, sc, bX, bY, bW, bD) {
   ctx.fillStyle = '#886644';
   ctx.fillText('工事現場・ガタガタ道', tx(450), ty(250) + 75 * sc);
 
-  // ゾーン：ロジスティクス
-  ctx.fillStyle = 'rgba(50,70,100,0.4)';
+  // ゾーン：歩道・公園エリア（ロジスティクスから変更）
+  ctx.fillStyle = 'rgba(30,70,40,0.45)';
   roundRect(ctx, tx(600), ty(250), 300 * sc, 140 * sc, 6);
   ctx.fill();
-  ctx.strokeStyle = '#5588aa';
+  ctx.strokeStyle = '#448844';
   ctx.lineWidth = 1.5;
   roundRect(ctx, tx(600), ty(250), 300 * sc, 140 * sc, 6);
   ctx.stroke();
-  ctx.fillStyle = '#77aacc';
+  ctx.fillStyle = '#77cc77';
   ctx.font = 'bold 10px Share Tech Mono';
-  ctx.fillText('ロジスティクス', tx(750), ty(250) + 55 * sc);
+  ctx.textAlign = 'center';
+  ctx.fillText('歩道・公園', tx(750), ty(250) + 48 * sc);
   ctx.font = '9px Share Tech Mono';
-  ctx.fillStyle = '#5588aa';
-  ctx.fillText('倉庫・荷捌き・搬送', tx(750), ty(250) + 75 * sc);
+  ctx.fillStyle = '#559955';
+  ctx.fillText('ベンチ・緑地・歩行者路', tx(750), ty(250) + 68 * sc);
+  ctx.fillStyle = '#448844';
+  ctx.font = '8px Share Tech Mono';
+  ctx.fillText('（ロジ→4F-Rへ移設）', tx(750), ty(250) + 86 * sc);
 
   // 道路（走行ルート・点線）
   ctx.setLineDash([8, 6]);
@@ -1073,20 +1077,34 @@ function drawFloor3FR(ctx, tx, ty, sc, bX, bY, bW, bD) {
   ctx.fillStyle = '#998866';
   ctx.fillText('坂・ランプ・工事現場・ガタ道', tx(250), ty(260) + 72 * sc);
 
-  // ロジスティクス
-  ctx.fillStyle = 'rgba(45,65,95,0.45)';
+  // ロータリー・公共施設（ロジスティクスから変更）
+  ctx.fillStyle = 'rgba(55,45,80,0.45)';
   roundRect(ctx, tx(470), ty(260), 430 * sc, 160 * sc, 6);
   ctx.fill();
-  ctx.strokeStyle = '#4477aa';
+  ctx.strokeStyle = '#8866bb';
   ctx.lineWidth = 1.5;
   roundRect(ctx, tx(470), ty(260), 430 * sc, 160 * sc, 6);
   ctx.stroke();
-  ctx.fillStyle = '#77aadd';
+  // ロータリーの丸
+  ctx.strokeStyle = '#aa88dd';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.arc(tx(580), ty(340), 28 * sc, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.fillStyle = 'rgba(88,66,120,0.5)';
+  ctx.beginPath();
+  ctx.arc(tx(580), ty(340), 28 * sc, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#ccaaff';
   ctx.font = 'bold 10px Share Tech Mono';
-  ctx.fillText('ロジスティクス', tx(685), ty(260) + 50 * sc);
+  ctx.textAlign = 'center';
+  ctx.fillText('ロータリー', tx(685), ty(260) + 48 * sc);
   ctx.font = '9px Share Tech Mono';
-  ctx.fillStyle = '#5588bb';
-  ctx.fillText('倉庫・荷捌き・搬送路', tx(685), ty(260) + 72 * sc);
+  ctx.fillStyle = '#9977cc';
+  ctx.fillText('交差点・公共施設', tx(685), ty(260) + 68 * sc);
+  ctx.fillStyle = '#775599';
+  ctx.font = '8px Share Tech Mono';
+  ctx.fillText('（ロジ→4F-Rへ移設）', tx(685), ty(260) + 86 * sc);
 
   // 走行ルート
   ctx.setLineDash([8, 6]);
@@ -1161,58 +1179,177 @@ function drawFloor4FL(ctx, tx, ty, sc, bX, bY, bW, bD) {
 }
 
 // ============================================================
-//  4F-R：空港（シンプル）右・高 1700mm  910×840mm
+//  4F-R：物流拠点（3Fロジ移設）右・高 1700mm  910×840mm
+//   倉庫・荷捌き・ベルトコンベア・4F-L(空港)との連絡
 // ============================================================
 function drawFloor4FR(ctx, tx, ty, sc, bX, bY, bW, bD) {
-  ctx.fillStyle = '#0a0a24';
+  // 背景：産業系ダークグレー
+  ctx.fillStyle = '#0e1410';
   ctx.fillRect(bX, bY, bW, bD);
 
-  ctx.fillStyle = 'rgba(40,40,90,0.3)';
+  // ヘッダー
+  ctx.fillStyle = 'rgba(20,60,30,0.5)';
   ctx.fillRect(bX, bY, bW, 26);
-  ctx.fillStyle = '#99aacc';
+  ctx.fillStyle = '#88ccaa';
   ctx.font = 'bold 10px Share Tech Mono';
   ctx.textAlign = 'center';
-  ctx.fillText('4F-R  空港（シンプル）  GL+1700mm  頂上', bX + bW / 2, bY + 17);
+  ctx.fillText('4F-R  物流拠点（3F-ロジ移設）  GL+1700mm', bX + bW / 2, bY + 17);
 
-  // エプロン（シンプル）
-  ctx.fillStyle = 'rgba(55,55,100,0.22)';
-  ctx.fillRect(tx(30), ty(50), tx(880) - tx(30), 150 * sc);
-  ctx.strokeStyle = '#5577aa';
-  ctx.lineWidth = 1;
-  ctx.strokeRect(tx(30), ty(50), tx(880) - tx(30), 150 * sc);
-  ctx.fillStyle = '#8899bb';
-  ctx.font = '9px Share Tech Mono';
-  ctx.textAlign = 'center';
-  ctx.fillText('エプロン', tx(455), ty(50) + 75 * sc);
-
-  // 滑走路（シンプル）
-  const rwX = tx(30), rwY = ty(S.boardD * 0.62), rwW = (S.boardW - 60) * sc, rwH = 120 * sc;
-  ctx.fillStyle = '#18182e';
-  ctx.fillRect(rwX, rwY, rwW, rwH);
-  ctx.strokeStyle = '#99aacc';
+  // === 倉庫A（大型・左上） ===
+  ctx.fillStyle = 'rgba(40,60,40,0.6)';
+  roundRect(ctx, tx(30), ty(50), 370 * sc, 180 * sc, 6);
+  ctx.fill();
+  ctx.strokeStyle = '#558855';
   ctx.lineWidth = 1.5;
-  ctx.strokeRect(rwX, rwY, rwW, rwH);
-  ctx.setLineDash([14, 10]);
-  ctx.strokeStyle = '#ffff44';
-  ctx.lineWidth = 2;
+  roundRect(ctx, tx(30), ty(50), 370 * sc, 180 * sc, 6);
+  ctx.stroke();
+  // 倉庫の屋根線（斜め）
+  ctx.strokeStyle = '#446644';
+  ctx.lineWidth = 1;
+  for (let i = 0; i < 4; i++) {
+    const lx = tx(30 + i * 90);
+    ctx.beginPath();
+    ctx.moveTo(lx, ty(50));
+    ctx.lineTo(lx + 45 * sc, ty(50) + 180 * sc);
+    ctx.stroke();
+  }
+  ctx.fillStyle = '#99cc99';
+  ctx.font = 'bold 11px Share Tech Mono';
+  ctx.textAlign = 'center';
+  ctx.fillText('倉庫 A', tx(215), ty(50) + 70 * sc);
+  ctx.font = '9px Share Tech Mono';
+  ctx.fillStyle = '#669966';
+  ctx.fillText('大型保管・ラック収納', tx(215), ty(50) + 92 * sc);
+
+  // === 倉庫B（右上） ===
+  ctx.fillStyle = 'rgba(45,55,38,0.55)';
+  roundRect(ctx, tx(420), ty(50), 460 * sc, 180 * sc, 6);
+  ctx.fill();
+  ctx.strokeStyle = '#557755';
+  ctx.lineWidth = 1.5;
+  roundRect(ctx, tx(420), ty(50), 460 * sc, 180 * sc, 6);
+  ctx.stroke();
+  for (let i = 0; i < 5; i++) {
+    const lx = tx(420 + i * 90);
+    ctx.strokeStyle = '#446644';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(lx, ty(50));
+    ctx.lineTo(lx + 45 * sc, ty(50) + 180 * sc);
+    ctx.stroke();
+  }
+  ctx.fillStyle = '#aadd99';
+  ctx.font = 'bold 11px Share Tech Mono';
+  ctx.textAlign = 'center';
+  ctx.fillText('倉庫 B', tx(650), ty(50) + 70 * sc);
+  ctx.font = '9px Share Tech Mono';
+  ctx.fillStyle = '#77aa66';
+  ctx.fillText('小型仕分け・出荷待ち', tx(650), ty(50) + 92 * sc);
+
+  // === 荷捌きエリア（中央） ===
+  ctx.fillStyle = 'rgba(55,50,25,0.5)';
+  roundRect(ctx, tx(30), ty(260), 850 * sc, 100 * sc, 4);
+  ctx.fill();
+  ctx.strokeStyle = '#aa9933';
+  ctx.lineWidth = 1.5;
+  roundRect(ctx, tx(30), ty(260), 850 * sc, 100 * sc, 4);
+  ctx.stroke();
+  ctx.fillStyle = '#ddcc66';
+  ctx.font = 'bold 10px Share Tech Mono';
+  ctx.textAlign = 'center';
+  ctx.fillText('荷捌きエリア（バース）', tx(455), ty(260) + 42 * sc);
+  ctx.font = '9px Share Tech Mono';
+  ctx.fillStyle = '#aa9944';
+  ctx.fillText('トラック荷受け・仕分け・フォークリフト走行路', tx(455), ty(260) + 62 * sc);
+
+  // フォークリフト走行路（矢印付き）
+  ctx.strokeStyle = '#ffcc00';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([6, 5]);
   ctx.beginPath();
-  ctx.moveTo(rwX + 8, rwY + rwH / 2);
-  ctx.lineTo(rwX + rwW - 8, rwY + rwH / 2);
+  ctx.moveTo(tx(80), ty(270)); ctx.lineTo(tx(830), ty(270));
   ctx.stroke();
   ctx.setLineDash([]);
-  ctx.fillStyle = '#aabbcc';
-  ctx.font = '10px Share Tech Mono';
-  ctx.fillText('滑走路', tx(455), rwY - 8);
+  drawCircuitArrow(ctx, tx(455), ty(270), 'right', 6, '#ffcc00');
 
-  ctx.fillStyle = '#ff3333';
-  ctx.fillRect(tx(S.boardW - 45), rwY, 5, rwH);
-  ctx.fillStyle = '#ff5555';
-  ctx.font = 'bold 9px Share Tech Mono';
-  ctx.textAlign = 'right';
-  ctx.fillText('最終ゴール', tx(S.boardW - 54), rwY + rwH / 2 - 3);
+  // === ベルトコンベア（搬送ライン） ===
+  ctx.strokeStyle = '#334433';
+  ctx.lineWidth = 8 * sc + 2;
+  ctx.beginPath();
+  ctx.moveTo(tx(50), ty(390));
+  ctx.lineTo(tx(860), ty(390));
+  ctx.stroke();
+  ctx.strokeStyle = '#66aa66';
+  ctx.lineWidth = 1;
+  // コンベアのローラー描画
+  for (let i = 0; i < 14; i++) {
+    const lx = tx(50 + i * 58);
+    ctx.beginPath(); ctx.moveTo(lx, ty(390) - 5); ctx.lineTo(lx, ty(390) + 5); ctx.stroke();
+  }
+  ctx.fillStyle = '#88cc88';
+  ctx.font = '9px Share Tech Mono';
+  ctx.textAlign = 'left';
+  ctx.fillText('▶ ベルトコンベア（搬送ライン）', tx(55), ty(405));
+  drawCircuitArrow(ctx, tx(500), ty(390), 'right', 6, '#88cc88');
 
+  // === 搬送路（縦断・フォークリフト専用） ===
+  ctx.setLineDash([5, 4]);
+  ctx.strokeStyle = '#556644';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(tx(200), ty(440)); ctx.lineTo(tx(200), ty(750));
+  ctx.moveTo(tx(700), ty(440)); ctx.lineTo(tx(700), ty(750));
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = '#778866';
+  ctx.font = '8px Share Tech Mono';
+  ctx.textAlign = 'center';
+  ctx.fillText('搬送路', tx(200), ty(460));
+  ctx.fillText('搬送路', tx(700), ty(460));
+
+  // === ステージング（出荷待ち） ===
+  ctx.fillStyle = 'rgba(35,55,35,0.5)';
+  roundRect(ctx, tx(30), ty(490), 380 * sc, 150 * sc, 4);
+  ctx.fill();
+  ctx.strokeStyle = '#447744';
+  ctx.lineWidth = 1;
+  roundRect(ctx, tx(30), ty(490), 380 * sc, 150 * sc, 4);
+  ctx.stroke();
+  ctx.fillStyle = '#88bb88';
+  ctx.font = 'bold 10px Share Tech Mono';
+  ctx.textAlign = 'center';
+  ctx.fillText('ステージング', tx(220), ty(490) + 50 * sc);
+  ctx.font = '9px Share Tech Mono';
+  ctx.fillStyle = '#669966';
+  ctx.fillText('出荷待ち・仕分け完了品', tx(220), ty(490) + 70 * sc);
+
+  // === 空港連絡エリア（4F-L接続） ===
+  ctx.fillStyle = 'rgba(20,30,55,0.55)';
+  roundRect(ctx, tx(440), ty(490), 450 * sc, 150 * sc, 4);
+  ctx.fill();
+  ctx.strokeStyle = '#4466aa';
+  ctx.lineWidth = 1.5;
+  roundRect(ctx, tx(440), ty(490), 450 * sc, 150 * sc, 4);
+  ctx.stroke();
+  ctx.fillStyle = '#8899cc';
+  ctx.font = 'bold 10px Share Tech Mono';
+  ctx.textAlign = 'center';
+  ctx.fillText('← 空港連絡（4F-L）', tx(665), ty(490) + 50 * sc);
+  ctx.font = '9px Share Tech Mono';
+  ctx.fillStyle = '#5577aa';
+  ctx.fillText('カーゴ搬送・地上支援', tx(665), ty(490) + 70 * sc);
+  // 連絡通路の矢印
+  ctx.strokeStyle = '#6688bb';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(tx(440), ty(565));
+  ctx.lineTo(tx(30), ty(565));
+  ctx.stroke();
+  drawCircuitArrow(ctx, tx(60), ty(565), 'left', 7, '#6688bb');
+
+  // スロープ・昇降機
   drawSlopeEntry(ctx, tx, ty, sc, 10, S.boardD * 0.45, '3F-R↓', '#4499ff', 'left');
-  drawSlopeEntry(ctx, tx, ty, sc, S.boardW - 10, S.boardD * 0.45, '頂上', '#ffff66', 'right');
+  drawSlopeEntry(ctx, tx, ty, sc, S.boardW - 10, S.boardD * 0.45, '最終ゴール', '#ffff66', 'right');
 }
 
 // ============================================================
