@@ -51,7 +51,7 @@
       grid-template-columns: 360px 1fr;
       gap: 2px;
       background: #030508;
-      min-width: 1050px;
+      min-width: 1220px;
     }
     body { overflow-x: auto; }
     .panel {
@@ -145,14 +145,14 @@
   <div class="panel">
     <div class="ptitle">▌ 各階 平面図</div>
     <div class="tabs">
-      <button class="tab active" onclick="setFloor(0)">1階<br><span style="font-size:.8em">地下街区</span></button>
-      <button class="tab" onclick="setFloor(1)">2階<br><span style="font-size:.8em">中央広場</span></button>
-      <button class="tab" onclick="setFloor(2)">3階-左<br><span style="font-size:.8em">技術区（低）</span></button>
-      <button class="tab" onclick="setFloor(3)">3階-右<br><span style="font-size:.8em">技術区（高）</span></button>
-      <button class="tab" onclick="setFloor(4)">4階-左<br><span style="font-size:.8em">空港（低）</span></button>
-      <button class="tab" onclick="setFloor(5)">4階-右<br><span style="font-size:.8em">空港（高）</span></button>
+      <button class="tab active" onclick="setFloor(0)">1階<br><span style="font-size:.8em">下道サーキット</span></button>
+      <button class="tab" onclick="setFloor(1)">2階<br><span style="font-size:.8em">サーキット2F</span></button>
+      <button class="tab" onclick="setFloor(2)">3階-左<br><span style="font-size:.8em">町づくり</span></button>
+      <button class="tab" onclick="setFloor(3)">3階-右<br><span style="font-size:.8em">町づくり</span></button>
+      <button class="tab" onclick="setFloor(4)">4階-左<br><span style="font-size:.8em">空港</span></button>
+      <button class="tab" onclick="setFloor(5)">4階-右<br><span style="font-size:.8em">空港</span></button>
     </div>
-    <canvas id="planCanvas" width="660" height="560"></canvas>
+    <canvas id="planCanvas" width="800" height="560"></canvas>
   </div>
 
   <!-- BOTTOM: 計算結果 -->
@@ -188,12 +188,12 @@ const S = {
 
   // 各階の床面高さ（mm、地面から床板上面まで）
   floors: [
-    { id:'1F',   label:'アンダーグラウンド・スラム', h: 200,  color:'#1a3d5e', dark:'#0a1d2e', boardW: 1820 },
-    { id:'2F',   label:'セントラル・ジャンクション', h: 500,  color:'#1a4d2a', dark:'#0a2d16', boardW: 1820 },
-    { id:'3F-L', label:'テクニカル・ラボ（左）',     h: 800,  color:'#4a4a14', dark:'#2a2a08' },
-    { id:'3F-R', label:'テクニカル・ラボ（右）',     h: 1100, color:'#5a3814', dark:'#2a1808' },
-    { id:'4F-L', label:'スカイ・ポート（左・低）',     h: 1400, color:'#14143a', dark:'#0a0a22' },
-    { id:'4F-R', label:'スカイ・ポート（右・高）',     h: 1700, color:'#1e1e50', dark:'#0e0e30' },
+    { id:'1F',   label:'下道サーキット（プラレール周遊・踏切・車庫）', h: 200,  color:'#1a3d5e', dark:'#0a1d2e', boardW: 1820 },
+    { id:'2F',   label:'サーキットコース（1F/3Fへ車線変更）', h: 500,  color:'#1a4d2a', dark:'#0a2d16', boardW: 1820 },
+    { id:'3F-L', label:'町づくりエリア（商業・信号・高低差・スケボー・土木・ロジ）', h: 800,  color:'#4a4a14', dark:'#2a2a08' },
+    { id:'3F-R', label:'町づくりエリア（同上・作りこみ）',     h: 1100, color:'#5a3814', dark:'#2a1808' },
+    { id:'4F-L', label:'空港（シンプル）',     h: 1400, color:'#14143a', dark:'#0a0a22' },
+    { id:'4F-R', label:'空港（シンプル）',     h: 1700, color:'#1e1e50', dark:'#0e0e30' },
   ],
 
   // スロープ
@@ -570,112 +570,161 @@ function drawPlan(floorIdx) {
 }
 
 // ============================================================
-//  1F：アンダーグラウンド・スラム（フル 1820×840mm）
+//  1F：下道サーキット（フル 1820×840mm）
+//   プラレールフル周遊・踏切・丘・道・車庫／走るメイン
 // ============================================================
 function drawFloor1F(ctx, tx, ty, sc, bX, bY, bW, bD) {
-  // ====== 背景：薄暗い地下街 ======
-  ctx.fillStyle = '#0a1d2e';
+  // ====== 背景：薄暗い地面 ======
+  ctx.fillStyle = '#0c1410';
   ctx.fillRect(bX, bY, bW, bD);
 
-  // LEDサイバーパンク光（青紫のグラデーション雰囲気）
-  ctx.fillStyle = 'rgba(0, 80, 200, 0.07)';
-  ctx.fillRect(bX, bY, bW, bD);
-
-  // ====== 板継ぎ目（910mm地点） ======
+  // ====== 板継ぎ目（910mm） ======
   ctx.setLineDash([3, 5]);
   ctx.strokeStyle = '#2a4a6a';
   ctx.lineWidth = 1;
-  const seamX = tx(S.boardW); // 910mm
-  ctx.beginPath();
-  ctx.moveTo(seamX, bY);
-  ctx.lineTo(seamX, bY + bD);
-  ctx.stroke();
+  const seamX = tx(S.boardW);
+  ctx.beginPath(); ctx.moveTo(seamX, bY); ctx.lineTo(seamX, bY + bD); ctx.stroke();
   ctx.setLineDash([]);
   ctx.fillStyle = '#2a4a6a';
   ctx.font = '8px Share Tech Mono';
   ctx.textAlign = 'center';
   ctx.fillText('板継ぎ目 910mm', seamX, bY + 10);
 
-  // ====== プラレール楕円コース（中央やや左寄り） ======
-  // 1820mm幅を活かして大きめの楕円配置
-  const trackCX = tx(750);          // 中心X（左から750mm）
-  const trackCY = ty(S.boardD / 2); // 中心Y（上下中央）
-  const oRx = CALC.ovalL / 2 * sc;  // 水平半径（楕円の横）
-  const oRy = CALC.ovalW / 2 * sc;  // 垂直半径（楕円の縦）
+  // ====== 下道（車道・横断道路）- ボード中央を横切る ======
+  const roadY = ty(S.boardD / 2);
+  ctx.fillStyle = '#2e2e2e';
+  ctx.fillRect(bX + 8, roadY - 36 * sc, bW - 16, 72 * sc);
+  ctx.strokeStyle = '#4a4a4a';
+  ctx.lineWidth = 1;
+  ctx.strokeRect(bX + 8, roadY - 36 * sc, bW - 16, 72 * sc);
+  // センターライン（黄色破線）
+  ctx.setLineDash([12, 10]);
+  ctx.strokeStyle = '#eecc00';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(bX + 10, roadY);
+  ctx.lineTo(bX + bW - 10, roadY);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = '#888888';
+  ctx.font = '9px Share Tech Mono';
+  ctx.textAlign = 'left';
+  ctx.fillText('下道（トミカ・ラジコン走行路）', bX + 18, roadY - 38 * sc);
 
-  // 軌道本体（線幅＝レール幅）
-  ctx.strokeStyle = '#2255aa';
-  ctx.lineWidth = S.railW * sc;
+  // ====== プラレール フル周遊コース（大楕円） ======
+  const plCX = tx(S.board2FW / 2);
+  const plCY = ty(S.boardD / 2);
+  const plRx = (S.board2FW - 100) / 2 * sc;
+  const plRy = (S.boardD - 100) / 2 * sc;
+
+  // 枕木ベース
+  ctx.strokeStyle = '#1a4080';
+  ctx.lineWidth = S.railW * sc + 4;
   ctx.setLineDash([]);
   ctx.beginPath();
-  ctx.ellipse(trackCX, trackCY, oRx, oRy, 0, 0, Math.PI * 2);
+  ctx.ellipse(plCX, plCY, plRx, plRy, 0, 0, Math.PI * 2);
   ctx.stroke();
-
-  // 軌道上面（明るい青線）
-  ctx.strokeStyle = '#4499ff';
-  ctx.lineWidth = 2;
+  // レール（明るい青）
+  ctx.strokeStyle = '#55aaff';
+  ctx.lineWidth = 2.5;
   ctx.beginPath();
-  ctx.ellipse(trackCX, trackCY, oRx, oRy, 0, 0, Math.PI * 2);
+  ctx.ellipse(plCX, plCY, plRx, plRy, 0, 0, Math.PI * 2);
   ctx.stroke();
 
-  // 軌道ラベル
-  ctx.fillStyle = '#6abaff';
+  // 進行方向矢印（時計回り：右→下→左→上）
+  const arrowAngles = [0, Math.PI * 0.5, Math.PI, Math.PI * 1.5];
+  const arrowDirs   = ['down', 'left', 'up', 'right'];
+  arrowAngles.forEach((angle, i) => {
+    const ax = plCX + plRx * Math.cos(angle);
+    const ay = plCY + plRy * Math.sin(angle);
+    drawCircuitArrow(ctx, ax, ay, arrowDirs[i], 7, '#88ccff');
+  });
+
+  ctx.fillStyle = '#55aaff';
   ctx.font = '10px Share Tech Mono';
   ctx.textAlign = 'center';
-  ctx.fillText(`プラレール 楕円コース  ${CALC.ovalL} × ${CALC.ovalW} mm`, trackCX, trackCY - oRy - 10);
+  ctx.fillText('プラレール フル周遊コース（時計回り）', plCX, bY + 35);
 
-  // ====== IoT 自動踏切（楕円右端付近） ======
-  // 踏切はラジコンが横断できるようにレール右端に配置
-  const crX = trackCX + oRx + 30 * sc;
-  const crY = trackCY;
-  ctx.fillStyle = '#cc2222';
-  roundRect(ctx, crX - 22 * sc, crY - 35 * sc, 44 * sc, 70 * sc, 4);
-  ctx.fill();
-  ctx.strokeStyle = '#ff6666';
+  // ====== 丘（起伏）- 楕円内部の地形 ======
+  // 丘1：左上エリア
+  ctx.fillStyle = 'rgba(95, 72, 42, 0.92)';
+  ctx.strokeStyle = '#c09050';
   ctx.lineWidth = 1.5;
-  roundRect(ctx, crX - 22 * sc, crY - 35 * sc, 44 * sc, 70 * sc, 4);
+  roundRect(ctx, tx(180), ty(130), 200 * sc, 100 * sc, 18);
+  ctx.fill();
+  roundRect(ctx, tx(180), ty(130), 200 * sc, 100 * sc, 18);
+  ctx.stroke();
+  ctx.fillStyle = '#e0b870';
+  ctx.font = 'bold 10px Share Tech Mono';
+  ctx.textAlign = 'center';
+  ctx.fillText('丘 ▲', tx(280), ty(180));
+  ctx.font = '8px Share Tech Mono';
+  ctx.fillStyle = '#b08848';
+  ctx.fillText('起伏地形', tx(280), ty(197));
+
+  // 丘2：右下エリア
+  ctx.fillStyle = 'rgba(100, 78, 46, 0.90)';
+  ctx.strokeStyle = '#c49858';
+  ctx.lineWidth = 1.5;
+  roundRect(ctx, tx(1380), ty(580), 240 * sc, 130 * sc, 22);
+  ctx.fill();
+  roundRect(ctx, tx(1380), ty(580), 240 * sc, 130 * sc, 22);
+  ctx.stroke();
+  ctx.fillStyle = '#e0b870';
+  ctx.font = 'bold 10px Share Tech Mono';
+  ctx.textAlign = 'center';
+  ctx.fillText('丘 ▲', tx(1500), ty(645));
+  ctx.font = '8px Share Tech Mono';
+  ctx.fillStyle = '#b08848';
+  ctx.fillText('起伏地形', tx(1500), ty(662));
+
+  // ====== IoT 自動踏切（プラレールと道路の交差） ======
+  const crX = plCX + plRx * 0.45;
+  const crY = plCY;
+  ctx.fillStyle = '#882222';
+  roundRect(ctx, crX - 22 * sc, crY - 38 * sc, 44 * sc, 76 * sc, 4);
+  ctx.fill();
+  ctx.strokeStyle = '#ff4444';
+  ctx.lineWidth = 2;
+  roundRect(ctx, crX - 22 * sc, crY - 38 * sc, 44 * sc, 76 * sc, 4);
   ctx.stroke();
   ctx.fillStyle = '#ffffff';
-  ctx.font = `bold ${Math.max(8, 9 * sc / 0.3)}px Share Tech Mono`;
   ctx.font = 'bold 9px Share Tech Mono';
   ctx.textAlign = 'center';
-  ctx.fillText('IoT', crX, crY - 20 * sc);
-  ctx.fillText('自動踏切', crX, crY - 8 * sc);
-  ctx.fillStyle = '#ff9999';
-  ctx.font = '8px Share Tech Mono';
-  ctx.fillText('センサー付き', crX, crY + 6 * sc);
+  ctx.fillText('IoT踏切', crX, crY - 5 * sc);
+  ctx.fillText('(車道横断)', crX, crY + 9 * sc);
+  // 踏切の警報灯（赤ドット2つ）
+  ctx.fillStyle = '#ff2222';
+  ctx.beginPath(); ctx.arc(crX - 8 * sc, crY - 24 * sc, 3, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(crX + 8 * sc, crY - 24 * sc, 3, 0, Math.PI * 2); ctx.fill();
 
-  // 踏切スロープ（ラジコン横断用）
-  ctx.setLineDash([4, 3]);
-  ctx.strokeStyle = '#ff6600';
+  // ====== プラレール車庫（右下エリア） ======
+  const depotX = tx(S.board2FW - 320);
+  const depotY = ty(S.boardD - S.elevD - 30);
+  const depotW = 230 * sc, depotH = 100 * sc;
+  ctx.fillStyle = '#1a2530';
+  ctx.fillRect(depotX, depotY, depotW, depotH);
+  ctx.strokeStyle = '#4a7aaa';
   ctx.lineWidth = 1.5;
-  // レール横断方向の破線
-  ctx.beginPath();
-  ctx.moveTo(crX, trackCY - oRy - 30 * sc);
-  ctx.lineTo(crX, trackCY + oRy + 30 * sc);
-  ctx.stroke();
-  ctx.setLineDash([]);
-  ctx.fillStyle = '#ff9933';
-  ctx.font = '8px Share Tech Mono';
-  ctx.textAlign = 'left';
-  ctx.fillText('← ラジコン横断スロープ', crX + 4 * sc, trackCY - oRy - 16 * sc);
-
-  // ====== 右側エリア：ラジコン補助コース ======
-  const rcAreaX = tx(1300);
-  const rcAreaW = tx(1820) - tx(1300);
-  ctx.fillStyle = 'rgba(60,40,10,0.4)';
-  ctx.fillRect(rcAreaX, bY + 40 * sc, rcAreaW - 20 * sc, bD - 80 * sc);
-  ctx.strokeStyle = '#886644';
+  ctx.strokeRect(depotX, depotY, depotW, depotH);
+  // 車庫内 線路スタブ（3本）
+  ctx.strokeStyle = '#336699';
   ctx.lineWidth = 1;
-  ctx.strokeRect(rcAreaX, bY + 40 * sc, rcAreaW - 20 * sc, bD - 80 * sc);
-  ctx.fillStyle = '#aa8855';
-  ctx.font = '9px Share Tech Mono';
+  for (let i = 0; i < 3; i++) {
+    const lx = depotX + (35 + i * 65) * sc;
+    ctx.beginPath(); ctx.moveTo(lx, depotY + 8); ctx.lineTo(lx, depotY + depotH - 8); ctx.stroke();
+  }
+  ctx.fillStyle = '#6a9aaa';
+  ctx.font = 'bold 10px Share Tech Mono';
   ctx.textAlign = 'center';
-  ctx.fillText('ラジコン', rcAreaX + (rcAreaW - 20 * sc) / 2, bY + bD / 2 - 8);
-  ctx.fillText('補助エリア', rcAreaX + (rcAreaW - 20 * sc) / 2, bY + bD / 2 + 6);
+  ctx.fillText('プラレール車庫', depotX + depotW / 2, depotY + depotH / 2 - 4);
+  ctx.font = '8px Share Tech Mono';
+  ctx.fillStyle = '#4a6a8a';
+  ctx.fillText('停車・出庫', depotX + depotW / 2, depotY + depotH / 2 + 12);
 
-  // ====== エレベーター穴（左下） ======
-  const evX = tx(60), evY = ty(S.boardD - 60);
+  // ====== 昇降機（左下エリア・ボード内に収まる位置） ======
+  const evX = tx(18);
+  const evY = ty(S.boardD - S.elevD - 20);  // ← y座標バグ修正：S.boardD-elevD-margin
   ctx.fillStyle = '#111122';
   ctx.strokeStyle = '#ff7700';
   ctx.lineWidth = 2;
@@ -684,168 +733,270 @@ function drawFloor1F(ctx, tx, ty, sc, bX, bY, bW, bD) {
   ctx.fillStyle = '#ff9900';
   ctx.font = '9px Share Tech Mono';
   ctx.textAlign = 'center';
-  ctx.fillText('昇降機', evX + S.elevW * sc / 2, evY + S.elevD * sc / 2 + 4);
+  ctx.fillText('昇降機', evX + S.elevW * sc / 2, evY + S.elevD * sc / 2);
+  ctx.fillText('↕2F', evX + S.elevW * sc / 2, evY + S.elevD * sc / 2 + 14);
+  ctx.fillStyle = '#cc7700';
+  ctx.font = '8px Share Tech Mono';
   ctx.fillText(`${S.elevW}×${S.elevD}mm`, evX + S.elevW * sc / 2, evY - 4);
 
-  // ====== スロープ口（2階へ）======
-  drawSlopeEntry(ctx, tx, ty, sc, S.board2FW - 10, S.boardD * 0.3, '2階↑', '#ff9933', 'right');
+  // ====== スロープ口（2階へ）右端 ======
+  drawSlopeEntry(ctx, tx, ty, sc, S.board2FW - 10, S.boardD * 0.25, '2F↑', '#ff9933', 'right');
 
-  // ====== 寸法ライン ======
-  drawDimLine(ctx, tx(0), ty(S.boardD / 2) + oRy + 24, tx(S.board2FW), ty(S.boardD / 2) + oRy + 24, `全幅 ${S.board2FW}mm（2枚並列）`, '#4a7aaa');
+  // ====== 全幅寸法線 ======
+  drawDimLine(ctx, tx(0), bY + bD + 20, tx(S.board2FW), bY + bD + 20, `全幅 ${S.board2FW}mm`, '#4a7aaa');
 }
 
 // ============================================================
-//  2F：セントラル・ジャンクション（フル 1820×840mm）
+//  2F：サーキットコース（フル 1820×840mm）
+//   オーソドックスなサーキット／吹き抜けから1F・3Fへ車線変更で移動
 // ============================================================
 function drawFloor2F(ctx, tx, ty, sc, bX, bY, bW, bD) {
   const RW = S.roadW; // 道路幅 200mm
 
-  // 自動計算
-  const atW = S.atriumW * sc; // (1820 - 200*2) * sc = 1420 * sc
-  const atH = S.atriumD * sc; // (840  - 200*2) * sc = 440  * sc
+  const atW = S.atriumW * sc;
+  const atH = S.atriumD * sc;
   const atX = bX + RW * sc;
   const atY = bY + RW * sc;
 
-  // ====== 道路面（全面アスファルト） ======
-  ctx.fillStyle = '#1e1e1e';
+  // ====== サーキット路面（アスファルト） ======
+  ctx.fillStyle = '#1a1a1a';
   ctx.fillRect(bX, bY, bW, bD);
 
-  // ====== 吹き抜け（中央の穴） ======
+  // ====== 吹き抜け（中央） ======
   ctx.fillStyle = '#050510';
   ctx.fillRect(atX, atY, atW, atH);
 
-  // 吹き抜け枠（点線オレンジ）
   ctx.strokeStyle = '#ff7700';
   ctx.lineWidth = 2;
   ctx.setLineDash([5, 4]);
   ctx.strokeRect(atX, atY, atW, atH);
   ctx.setLineDash([]);
 
-  // 吹き抜けラベル
   ctx.fillStyle = '#ff9933';
   ctx.font = 'bold 11px Share Tech Mono';
   ctx.textAlign = 'center';
-  ctx.fillText(`吹き抜け開口  ${S.atriumW} × ${S.atriumD} mm`, atX + atW / 2, atY + atH / 2 - 10);
+  ctx.fillText(`吹き抜け  ${S.atriumW}×${S.atriumD}mm`, atX + atW / 2, atY + atH / 2 - 16);
   ctx.font = '10px Share Tech Mono';
-  ctx.fillStyle = '#cc6600';
-  ctx.fillText('↓ 1階 踏切・プラレールを見下ろし ↓', atX + atW / 2, atY + atH / 2 + 8);
+  ctx.fillStyle = '#55aaff';
+  ctx.fillText('↓1F 下道・プラレール・踏切', atX + atW / 2, atY + atH / 2 + 2);
+  ctx.fillStyle = '#ff9944';
+  ctx.fillText('↑3F 町づくりエリア', atX + atW / 2, atY + atH / 2 + 18);
 
-  // ====== 道路（ロの字走路）======
-  // 道路中心線（破線・白）
-  ctx.setLineDash([10, 10]);
+  // ====== サーキット走路（ロの字）中心線 ======
+  ctx.setLineDash([12, 10]);
   ctx.strokeStyle = '#ffffff';
-  ctx.lineWidth = 1;
+  ctx.lineWidth = 1.5;
 
-  // 上走路の中心線
   const topMid = ty(RW / 2);
-  ctx.beginPath(); ctx.moveTo(bX + RW * sc, topMid); ctx.lineTo(bX + bW - RW * sc, topMid); ctx.stroke();
-
-  // 下走路の中心線
   const botMid = ty(S.boardD - RW / 2);
-  ctx.beginPath(); ctx.moveTo(bX + RW * sc, botMid); ctx.lineTo(bX + bW - RW * sc, botMid); ctx.stroke();
-
-  // 左走路の中心線
   const leftMid = tx(RW / 2);
-  ctx.beginPath(); ctx.moveTo(leftMid, bY + RW * sc); ctx.lineTo(leftMid, bY + bD - RW * sc); ctx.stroke();
-
-  // 右走路の中心線
   const rightMid = tx(S.board2FW - RW / 2);
-  ctx.beginPath(); ctx.moveTo(rightMid, bY + RW * sc); ctx.lineTo(rightMid, bY + bD - RW * sc); ctx.stroke();
 
+  ctx.beginPath(); ctx.moveTo(bX + RW * sc, topMid); ctx.lineTo(bX + bW - RW * sc, topMid); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(bX + RW * sc, botMid); ctx.lineTo(bX + bW - RW * sc, botMid); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(leftMid, bY + RW * sc); ctx.lineTo(leftMid, bY + bD - RW * sc); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(rightMid, bY + RW * sc); ctx.lineTo(rightMid, bY + bD - RW * sc); ctx.stroke();
   ctx.setLineDash([]);
 
-  // 道路境界線（内側・白実線）
-  ctx.strokeStyle = '#888888';
-  ctx.lineWidth = 1;
-  ctx.strokeRect(atX, atY, atW, atH); // 内縁（吹き抜け枠と同一）
-
-  // 道路境界線（外側）
   ctx.strokeStyle = '#666666';
+  ctx.lineWidth = 1;
+  ctx.strokeRect(atX, atY, atW, atH);
+  ctx.strokeStyle = '#555555';
   ctx.lineWidth = 1.5;
   ctx.strokeRect(bX + 2, bY + 2, bW - 4, bD - 4);
 
-  // ====== 道路幅寸法ラベル ======
-  ctx.fillStyle = '#44cc88';
-  ctx.font = '9px Share Tech Mono';
+  // ====== 吹き抜け縁：1F・3Fへつながる車線変更レーン ======
+  // 1Fへ下りる車線（吹き抜け右縁）
+  const lane1FX = atX + atW - 2;
+  const lane1FY = ty(S.boardD * 0.28);
+  ctx.fillStyle = 'rgba(68,153,255,0.35)';
+  ctx.fillRect(lane1FX, lane1FY - 25 * sc, 45 * sc, 50 * sc);
+  ctx.strokeStyle = '#4499ff';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(lane1FX, lane1FY - 25 * sc, 45 * sc, 50 * sc);
+  ctx.fillStyle = '#4499ff';
+  ctx.font = 'bold 9px Share Tech Mono';
   ctx.textAlign = 'center';
-  // 上走路
-  ctx.fillText(`道路幅 ${RW}mm`, bX + bW / 2, topMid - 12);
-  // 左走路
-  ctx.save();
-  ctx.translate(leftMid - 10, bY + bD / 2);
-  ctx.rotate(-Math.PI / 2);
-  ctx.fillText(`道路幅 ${RW}mm`, 0, 0);
-  ctx.restore();
+  ctx.fillText('1Fへ', lane1FX + 22 * sc, lane1FY - 2);
+  ctx.fillText('下り', lane1FX + 22 * sc, lane1FY + 10);
 
-  // ====== 板継ぎ目（910mm中央） ======
+  // 3Fへ上る車線（吹き抜け右縁・下側）
+  const lane3FX = atX + atW - 2;
+  const lane3FY = ty(S.boardD * 0.72);
+  ctx.fillStyle = 'rgba(255,153,51,0.35)';
+  ctx.fillRect(lane3FX, lane3FY - 25 * sc, 45 * sc, 50 * sc);
+  ctx.strokeStyle = '#ff9933';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(lane3FX, lane3FY - 25 * sc, 45 * sc, 50 * sc);
+  ctx.fillStyle = '#ff9933';
+  ctx.fillText('3Fへ', lane3FX + 22 * sc, lane3FY - 2);
+  ctx.fillText('上り', lane3FX + 22 * sc, lane3FY + 10);
+
+  // 車線変更の矢印（サーキット→吹き抜け方向）
+  ctx.fillStyle = '#888888';
+  ctx.font = '8px Share Tech Mono';
+  ctx.textAlign = 'left';
+  ctx.fillText('車線変更 →', lane1FX + 48 * sc, lane1FY);
+  ctx.fillText('車線変更 →', lane3FX + 48 * sc, lane3FY);
+
+  // ====== 走行方向矢印（時計回り） ======
+  const mids = [
+    { x: (leftMid + rightMid) / 2, y: topMid,  dir: 'right' },  // 上辺 → 右
+    { x: rightMid,                 y: (topMid + botMid) / 2, dir: 'down'  }, // 右辺 → 下
+    { x: (leftMid + rightMid) / 2, y: botMid,  dir: 'left'  },  // 下辺 → 左
+    { x: leftMid,                  y: (topMid + botMid) / 2, dir: 'up'   }, // 左辺 → 上
+  ];
+  mids.forEach(m => drawCircuitArrow(ctx, m.x, m.y, m.dir, 8, '#aaffaa'));
+
+  // ====== サーキットラベル ======
+  ctx.fillStyle = '#44cc88';
+  ctx.font = 'bold 11px Share Tech Mono';
+  ctx.textAlign = 'center';
+  ctx.fillText('2F サーキットコース（時計回り） 道路幅 ' + RW + 'mm', bX + bW / 2, topMid - 14);
+
+  // ====== 板継ぎ目 ======
   ctx.setLineDash([3, 5]);
   ctx.strokeStyle = '#3a5a7a';
   ctx.lineWidth = 1;
-  const seamX = tx(S.boardW); // 910mm地点
-  ctx.beginPath();
-  ctx.moveTo(seamX, bY);
-  ctx.lineTo(seamX, bY + bD);
-  ctx.stroke();
+  const seamX = tx(S.boardW);
+  ctx.beginPath(); ctx.moveTo(seamX, bY); ctx.lineTo(seamX, bY + bD); ctx.stroke();
   ctx.setLineDash([]);
   ctx.fillStyle = '#3a5a7a';
   ctx.font = '8px Share Tech Mono';
-  ctx.textAlign = 'center';
   ctx.fillText('板継ぎ目 910mm', seamX, bY + 10);
 
-  // ====== スロープ入口 ======
-  // 1Fから（左辺・上下）
-  drawSlopeEntry(ctx, tx, ty, sc, 10,                   S.boardD * 0.3, '1階↓', '#4499ff', 'left');
-  // 3Fへ（右辺）
-  drawSlopeEntry(ctx, tx, ty, sc, S.board2FW - 10,      S.boardD * 0.5, '3階↑', '#ff9933', 'right');
+  // ====== スロープ入口（外周） ======
+  drawSlopeEntry(ctx, tx, ty, sc, 10, S.boardD * 0.28, '1階↓', '#4499ff', 'left');
+  drawSlopeEntry(ctx, tx, ty, sc, S.board2FW - 10, S.boardD * 0.72, '3階↑', '#ff9933', 'right');
 
-  // ====== 寸法ライン（全幅・開口幅） ======
-  // 開口幅
+  // ====== 寸法 ======
   drawDimLine(ctx, atX, atY - 16, atX + atW, atY - 16, `吹き抜け ${S.atriumW}mm`, '#ff7700');
-  // 開口奥行
   drawDimLineV(ctx, atX + atW + 12, atY, atX + atW + 12, atY + atH, `${S.atriumD}mm`, '#ff7700');
 }
 
 // ============================================================
-//  3F-L：テクニカル・ラボ（左ラック・低い段 800mm）910×840mm
+//  3F-L：町づくりエリア（左・低 800mm）910×840mm
+//   商業・信号・高低差・スケボー・土木・ロジスティクス
 // ============================================================
 function drawFloor3FL(ctx, tx, ty, sc, bX, bY, bW, bD) {
-  ctx.fillStyle = '#2a2a08';
+  ctx.fillStyle = '#1a1810';
   ctx.fillRect(bX, bY, bW, bD);
 
-  // 板タイトル帯
-  ctx.fillStyle = 'rgba(100,100,20,0.25)';
-  ctx.fillRect(bX, bY, bW, 26);
-  ctx.fillStyle = '#aaaa44';
+  // ヘッダー
+  ctx.fillStyle = 'rgba(80,70,40,0.35)';
+  ctx.fillRect(bX, bY, bW, 28);
+  ctx.fillStyle = '#ddcc88';
   ctx.font = 'bold 10px Share Tech Mono';
   ctx.textAlign = 'center';
-  ctx.fillText('3F-L  左ラック・低い段  GL+800mm  （910×840mm）', bX + bW / 2, bY + 17);
+  ctx.fillText('3F-L  町づくりエリア（作りこみ）  GL+800mm', bX + bW / 2, bY + 18);
 
-  // スケボーパーク風障害物ゾーン（中央下）
-  ctx.fillStyle = 'rgba(100,80,20,0.35)';
-  roundRect(ctx, tx(50), ty(S.boardD - 80), tx(860) - tx(50), 100 * sc, 6);
+  // ゾーン：街並み・商業エリア（3Dプリンタ）
+  ctx.fillStyle = 'rgba(120,90,50,0.4)';
+  roundRect(ctx, tx(40), ty(50), 280 * sc, 180 * sc, 8);
   ctx.fill();
-  ctx.strokeStyle = '#aaaa44';
-  ctx.lineWidth = 1;
-  roundRect(ctx, tx(50), ty(S.boardD - 80), tx(860) - tx(50), 100 * sc, 6);
-  ctx.stroke();
-  ctx.fillStyle = '#cccc66';
-  ctx.font = '10px Share Tech Mono';
-  ctx.textAlign = 'center';
-  ctx.fillText('スケボーパーク 障害物ゾーン（3Dプリンター製）', tx(455), ty(S.boardD - 120) + 6);
-
-  // トンネル区画（中段）
-  ctx.fillStyle = '#0e0e0e';
-  ctx.fillRect(tx(120), ty(480), tx(520) - tx(120), 110 * sc);
-  ctx.strokeStyle = '#666666';
+  ctx.strokeStyle = '#aa8844';
   ctx.lineWidth = 1.5;
-  ctx.strokeRect(tx(120), ty(480), tx(520) - tx(120), 110 * sc);
-  ctx.fillStyle = '#888888';
-  ctx.font = '10px Share Tech Mono';
+  roundRect(ctx, tx(40), ty(50), 280 * sc, 180 * sc, 8);
+  ctx.stroke();
+  ctx.fillStyle = '#ddbb66';
+  ctx.font = 'bold 10px Share Tech Mono';
   ctx.textAlign = 'center';
-  ctx.fillText('トンネル区画（FPV走行・死角）', tx(320), ty(480) + 55 * sc);
+  ctx.fillText('街並み・商業エリア', tx(40) + 140 * sc, ty(50) + 50 * sc);
+  ctx.font = '9px Share Tech Mono';
+  ctx.fillStyle = '#aa9966';
+  ctx.fillText('3Dプリンタで作る店舗・ビル', tx(40) + 140 * sc, ty(50) + 70 * sc);
 
-  // エレベーター穴（左下）
-  const evX = tx(40), evY = ty(S.boardD - 50);
+  // ゾーン：信号・電気ギミック
+  ctx.fillStyle = 'rgba(80,120,80,0.35)';
+  roundRect(ctx, tx(340), ty(50), 220 * sc, 120 * sc, 6);
+  ctx.fill();
+  ctx.strokeStyle = '#66aa66';
+  ctx.lineWidth = 1.5;
+  roundRect(ctx, tx(340), ty(50), 220 * sc, 120 * sc, 6);
+  ctx.stroke();
+  ctx.fillStyle = '#88cc88';
+  ctx.font = 'bold 10px Share Tech Mono';
+  ctx.fillText('信号・電気ギミック', tx(450), ty(50) + 42 * sc);
+  ctx.font = '9px Share Tech Mono';
+  ctx.fillStyle = '#66aa66';
+  ctx.fillText('LED・センサー・制御', tx(450), ty(50) + 62 * sc);
+
+  // ゾーン：高低差ルート
+  ctx.fillStyle = 'rgba(70,60,90,0.4)';
+  roundRect(ctx, tx(580), ty(50), 320 * sc, 120 * sc, 6);
+  ctx.fill();
+  ctx.strokeStyle = '#8877aa';
+  ctx.lineWidth = 1.5;
+  roundRect(ctx, tx(580), ty(50), 320 * sc, 120 * sc, 6);
+  ctx.stroke();
+  ctx.fillStyle = '#aa99cc';
+  ctx.font = 'bold 10px Share Tech Mono';
+  ctx.fillText('高低差のあるルート', tx(740), ty(50) + 42 * sc);
+  ctx.font = '9px Share Tech Mono';
+  ctx.fillStyle = '#8877aa';
+  ctx.fillText('坂道・段差・立体交差', tx(740), ty(50) + 62 * sc);
+
+  // ゾーン：スケボー風
+  ctx.fillStyle = 'rgba(100,60,40,0.4)';
+  roundRect(ctx, tx(40), ty(250), 260 * sc, 140 * sc, 6);
+  ctx.fill();
+  ctx.strokeStyle = '#cc7744';
+  ctx.lineWidth = 1.5;
+  roundRect(ctx, tx(40), ty(250), 260 * sc, 140 * sc, 6);
+  ctx.stroke();
+  ctx.fillStyle = '#eeaa77';
+  ctx.font = 'bold 10px Share Tech Mono';
+  ctx.fillText('スケボー風', tx(40) + 130 * sc, ty(250) + 55 * sc);
+  ctx.font = '9px Share Tech Mono';
+  ctx.fillStyle = '#cc8844';
+  ctx.fillText('ランプ・障害物コース', tx(40) + 130 * sc, ty(250) + 75 * sc);
+
+  // ゾーン：土木
+  ctx.fillStyle = 'rgba(60,50,40,0.5)';
+  roundRect(ctx, tx(320), ty(250), 260 * sc, 140 * sc, 6);
+  ctx.fill();
+  ctx.strokeStyle = '#886644';
+  ctx.lineWidth = 1.5;
+  roundRect(ctx, tx(320), ty(250), 260 * sc, 140 * sc, 6);
+  ctx.stroke();
+  ctx.fillStyle = '#aa8866';
+  ctx.font = 'bold 10px Share Tech Mono';
+  ctx.fillText('土木', tx(450), ty(250) + 55 * sc);
+  ctx.font = '9px Share Tech Mono';
+  ctx.fillStyle = '#886644';
+  ctx.fillText('工事現場・ガタガタ道', tx(450), ty(250) + 75 * sc);
+
+  // ゾーン：ロジスティクス
+  ctx.fillStyle = 'rgba(50,70,100,0.4)';
+  roundRect(ctx, tx(600), ty(250), 300 * sc, 140 * sc, 6);
+  ctx.fill();
+  ctx.strokeStyle = '#5588aa';
+  ctx.lineWidth = 1.5;
+  roundRect(ctx, tx(600), ty(250), 300 * sc, 140 * sc, 6);
+  ctx.stroke();
+  ctx.fillStyle = '#77aacc';
+  ctx.font = 'bold 10px Share Tech Mono';
+  ctx.fillText('ロジスティクス', tx(750), ty(250) + 55 * sc);
+  ctx.font = '9px Share Tech Mono';
+  ctx.fillStyle = '#5588aa';
+  ctx.fillText('倉庫・荷捌き・搬送', tx(750), ty(250) + 75 * sc);
+
+  // 道路（走行ルート・点線）
+  ctx.setLineDash([8, 6]);
+  ctx.strokeStyle = '#666644';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(tx(50), ty(420)); ctx.lineTo(tx(860), ty(420));
+  ctx.moveTo(tx(455), ty(200)); ctx.lineTo(tx(455), ty(650));
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = '#666644';
+  ctx.font = '8px Share Tech Mono';
+  ctx.textAlign = 'center';
+  ctx.fillText('走行ルート（作りこみ）', tx(455), ty(680));
+
+  // 昇降機（ボード内に収まる座標に修正）
+  const evX = tx(30), evY = ty(S.boardD - S.elevD - 20);
   ctx.fillStyle = '#111122';
   ctx.strokeStyle = '#ff7700';
   ctx.lineWidth = 2;
@@ -854,97 +1005,139 @@ function drawFloor3FL(ctx, tx, ty, sc, bX, bY, bW, bD) {
   ctx.fillStyle = '#ff9900';
   ctx.font = '9px Share Tech Mono';
   ctx.textAlign = 'center';
-  ctx.fillText('昇降機', evX + S.elevW * sc / 2, evY + S.elevD * sc / 2 + 4);
-  ctx.fillText('↕1階', evX + S.elevW * sc / 2, evY + S.elevD * sc / 2 + 16);
+  ctx.fillText('昇降機', evX + S.elevW * sc / 2, evY + S.elevD * sc / 2);
+  ctx.fillText('↕1F', evX + S.elevW * sc / 2, evY + S.elevD * sc / 2 + 14);
 
-  // スロープ口
-  drawSlopeEntry(ctx, tx, ty, sc, 10,           S.boardD * 0.45, '2階↓', '#4499ff', 'left');
+  drawSlopeEntry(ctx, tx, ty, sc, 10, S.boardD * 0.45, '2階↓', '#4499ff', 'left');
   drawSlopeEntry(ctx, tx, ty, sc, S.boardW - 10, S.boardD * 0.45, '4F-L↑', '#ff9933', 'right');
-
-  // 寸法
-  drawDimLine(ctx, tx(50), ty(S.boardD - 80) + 110 * sc + 12,
-              tx(860), ty(S.boardD - 80) + 110 * sc + 12, '810mm', '#aaaa44');
 }
 
 // ============================================================
-//  3F-R：テクニカル・ラボ（右ラック・高い段 1100mm）910×840mm
+//  3F-R：町づくりエリア（右・高 1100mm）910×840mm
+//   商業・信号・高低差・スケボー・土木・ロジ（作りこみ）
 // ============================================================
 function drawFloor3FR(ctx, tx, ty, sc, bX, bY, bW, bD) {
-  ctx.fillStyle = '#2a1808';
+  ctx.fillStyle = '#181410';
   ctx.fillRect(bX, bY, bW, bD);
 
-  // 板タイトル帯
-  ctx.fillStyle = 'rgba(100,60,20,0.3)';
-  ctx.fillRect(bX, bY, bW, 26);
-  ctx.fillStyle = '#cc8844';
+  ctx.fillStyle = 'rgba(90,60,30,0.35)';
+  ctx.fillRect(bX, bY, bW, 28);
+  ctx.fillStyle = '#cc9944';
   ctx.font = 'bold 10px Share Tech Mono';
   ctx.textAlign = 'center';
-  ctx.fillText('3F-R  右ラック・高い段  GL+1100mm  （910×840mm）', bX + bW / 2, bY + 17);
+  ctx.fillText('3F-R  町づくりエリア（作りこみ）  GL+1100mm', bX + bW / 2, bY + 18);
 
-  // ガタガタ道ゾーン（下半分）
-  ctx.fillStyle = 'rgba(80,40,10,0.45)';
-  roundRect(ctx, tx(40), ty(S.boardD - 70), tx(870) - tx(40), 110 * sc, 6);
+  // 商業エリア（右側ブロック）
+  ctx.fillStyle = 'rgba(110,85,55,0.4)';
+  roundRect(ctx, tx(480), ty(45), 420 * sc, 200 * sc, 8);
   ctx.fill();
-  ctx.strokeStyle = '#aa6622';
-  ctx.lineWidth = 1;
-  roundRect(ctx, tx(40), ty(S.boardD - 70), tx(870) - tx(40), 110 * sc, 6);
-  ctx.stroke();
-  ctx.fillStyle = '#cc8844';
-  ctx.font = '10px Share Tech Mono';
-  ctx.textAlign = 'center';
-  ctx.fillText('ガタガタ道 / 土木現場ゾーン（3Dプリンター製）', tx(455), ty(S.boardD - 110) + 6);
-
-  // トンネル区画（中段）
-  ctx.fillStyle = '#0e0e0e';
-  ctx.fillRect(tx(250), ty(480), tx(680) - tx(250), 110 * sc);
-  ctx.strokeStyle = '#666666';
+  ctx.strokeStyle = '#aa7744';
   ctx.lineWidth = 1.5;
-  ctx.strokeRect(tx(250), ty(480), tx(680) - tx(250), 110 * sc);
-  ctx.fillStyle = '#888888';
-  ctx.font = '10px Share Tech Mono';
+  roundRect(ctx, tx(480), ty(45), 420 * sc, 200 * sc, 8);
+  ctx.stroke();
+  ctx.fillStyle = '#ddaa66';
+  ctx.font = 'bold 10px Share Tech Mono';
   ctx.textAlign = 'center';
-  ctx.fillText('トンネル区画（FPV走行・死角）', tx(465), ty(480) + 55 * sc);
+  ctx.fillText('街並み・商業エリア（3Dプリンタ）', tx(690), ty(45) + 70 * sc);
+  ctx.font = '9px Share Tech Mono';
+  ctx.fillStyle = '#aa8866';
+  ctx.fillText('店舗・ビル・街灯・信号', tx(690), ty(45) + 92 * sc);
 
-  // スロープ口
-  drawSlopeEntry(ctx, tx, ty, sc, 10,           S.boardD * 0.45, '2階↓', '#4499ff', 'left');
+  // 信号・電気ギミック
+  ctx.fillStyle = 'rgba(60,100,60,0.4)';
+  roundRect(ctx, tx(50), ty(45), 200 * sc, 95 * sc, 6);
+  ctx.fill();
+  ctx.strokeStyle = '#55aa55';
+  ctx.lineWidth = 1.5;
+  roundRect(ctx, tx(50), ty(45), 200 * sc, 95 * sc, 6);
+  ctx.stroke();
+  ctx.fillStyle = '#88cc88';
+  ctx.font = 'bold 10px Share Tech Mono';
+  ctx.fillText('信号・電気', tx(150), ty(45) + 42 * sc);
+  ctx.font = '9px Share Tech Mono';
+  ctx.fillStyle = '#66aa66';
+  ctx.fillText('LED・制御', tx(150), ty(45) + 62 * sc);
+
+  // 高低差・スケボー・土木（まとめて下段）
+  ctx.fillStyle = 'rgba(70,60,50,0.4)';
+  roundRect(ctx, tx(50), ty(260), 400 * sc, 160 * sc, 6);
+  ctx.fill();
+  ctx.strokeStyle = '#887766';
+  ctx.lineWidth = 1.5;
+  roundRect(ctx, tx(50), ty(260), 400 * sc, 160 * sc, 6);
+  ctx.stroke();
+  ctx.fillStyle = '#bbaa88';
+  ctx.font = 'bold 10px Share Tech Mono';
+  ctx.fillText('高低差ルート / スケボー風 / 土木', tx(250), ty(260) + 50 * sc);
+  ctx.font = '9px Share Tech Mono';
+  ctx.fillStyle = '#998866';
+  ctx.fillText('坂・ランプ・工事現場・ガタ道', tx(250), ty(260) + 72 * sc);
+
+  // ロジスティクス
+  ctx.fillStyle = 'rgba(45,65,95,0.45)';
+  roundRect(ctx, tx(470), ty(260), 430 * sc, 160 * sc, 6);
+  ctx.fill();
+  ctx.strokeStyle = '#4477aa';
+  ctx.lineWidth = 1.5;
+  roundRect(ctx, tx(470), ty(260), 430 * sc, 160 * sc, 6);
+  ctx.stroke();
+  ctx.fillStyle = '#77aadd';
+  ctx.font = 'bold 10px Share Tech Mono';
+  ctx.fillText('ロジスティクス', tx(685), ty(260) + 50 * sc);
+  ctx.font = '9px Share Tech Mono';
+  ctx.fillStyle = '#5588bb';
+  ctx.fillText('倉庫・荷捌き・搬送路', tx(685), ty(260) + 72 * sc);
+
+  // 走行ルート
+  ctx.setLineDash([8, 6]);
+  ctx.strokeStyle = '#665544';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(tx(50), ty(450)); ctx.lineTo(tx(860), ty(450));
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = '#665544';
+  ctx.font = '8px Share Tech Mono';
+  ctx.textAlign = 'center';
+  ctx.fillText('走行ルート', tx(455), ty(480));
+
+  drawSlopeEntry(ctx, tx, ty, sc, 10, S.boardD * 0.45, '2階↓', '#4499ff', 'left');
   drawSlopeEntry(ctx, tx, ty, sc, S.boardW - 10, S.boardD * 0.45, '4F-R↑', '#ff9933', 'right');
 }
 
 // ============================================================
-//  4F-L：スカイ・ポート（左ラック・低い段 1400mm）910×840mm
+//  4F-L：空港（シンプル）左・低 1400mm  910×840mm
 // ============================================================
 function drawFloor4FL(ctx, tx, ty, sc, bX, bY, bW, bD) {
-  ctx.fillStyle = '#0a0a22';
+  ctx.fillStyle = '#0c0c1e';
   ctx.fillRect(bX, bY, bW, bD);
 
-  // 板タイトル帯
-  ctx.fillStyle = 'rgba(40,40,100,0.3)';
+  ctx.fillStyle = 'rgba(35,35,80,0.3)';
   ctx.fillRect(bX, bY, bW, 26);
-  ctx.fillStyle = '#8888cc';
+  ctx.fillStyle = '#8899cc';
   ctx.font = 'bold 10px Share Tech Mono';
   ctx.textAlign = 'center';
-  ctx.fillText('4F-L  左ラック・低い段  GL+1400mm  （910×840mm）', bX + bW / 2, bY + 17);
+  ctx.fillText('4F-L  空港（シンプル）  GL+1400mm', bX + bW / 2, bY + 17);
 
-  // エプロン（上半分）
-  ctx.fillStyle = 'rgba(60,60,160,0.2)';
-  ctx.fillRect(tx(30), ty(S.boardD * 0.15), tx(880) - tx(30), 160 * sc);
-  ctx.strokeStyle = '#6666aa';
+  // エプロン（シンプル）
+  ctx.fillStyle = 'rgba(50,50,90,0.25)';
+  ctx.fillRect(tx(30), ty(50), tx(880) - tx(30), 150 * sc);
+  ctx.strokeStyle = '#5566aa';
   ctx.lineWidth = 1;
-  ctx.strokeRect(tx(30), ty(S.boardD * 0.15), tx(880) - tx(30), 160 * sc);
-  ctx.fillStyle = '#8888bb';
-  ctx.font = '10px Share Tech Mono';
+  ctx.strokeRect(tx(30), ty(50), tx(880) - tx(30), 150 * sc);
+  ctx.fillStyle = '#7788bb';
+  ctx.font = '9px Share Tech Mono';
   ctx.textAlign = 'center';
-  ctx.fillText('エプロン（駐機エリア）', tx(455), ty(S.boardD * 0.15) + 80 * sc);
+  ctx.fillText('エプロン', tx(455), ty(50) + 75 * sc);
 
-  // 滑走路（中央〜下）
-  const rwX = tx(30), rwY = ty(S.boardD * 0.65), rwW = (S.boardW - 60) * sc, rwH = 130 * sc;
-  ctx.fillStyle = '#14142e';
+  // 滑走路（シンプル）
+  const rwX = tx(30), rwY = ty(S.boardD * 0.62), rwW = (S.boardW - 60) * sc, rwH = 120 * sc;
+  ctx.fillStyle = '#16162a';
   ctx.fillRect(rwX, rwY, rwW, rwH);
-  ctx.strokeStyle = '#aaaaff';
+  ctx.strokeStyle = '#8899aa';
   ctx.lineWidth = 1.5;
   ctx.strokeRect(rwX, rwY, rwW, rwH);
-  // 中央線
-  ctx.setLineDash([16, 12]);
+  ctx.setLineDash([14, 10]);
   ctx.strokeStyle = '#ffff44';
   ctx.lineWidth = 2;
   ctx.beginPath();
@@ -952,75 +1145,54 @@ function drawFloor4FL(ctx, tx, ty, sc, bX, bY, bW, bD) {
   ctx.lineTo(rwX + rwW - 8, rwY + rwH / 2);
   ctx.stroke();
   ctx.setLineDash([]);
-  ctx.fillStyle = '#aaaaff';
+  ctx.fillStyle = '#aaaacc';
   ctx.font = '10px Share Tech Mono';
-  ctx.textAlign = 'center';
-  ctx.fillText(`✈ 滑走路  ${S.boardW - 60}mm`, tx(455), rwY - 10);
+  ctx.fillText('滑走路', tx(455), rwY - 8);
 
-  // ゴールライン
   ctx.fillStyle = '#ff4444';
-  ctx.fillRect(tx(S.boardW - 50), rwY, 5, rwH);
-  ctx.fillStyle = '#ff4444';
-  ctx.font = 'bold 10px Share Tech Mono';
+  ctx.fillRect(tx(S.boardW - 45), rwY, 4, rwH);
+  ctx.fillStyle = '#ff6666';
+  ctx.font = 'bold 9px Share Tech Mono';
   ctx.textAlign = 'right';
-  ctx.fillText('ゴール！', tx(S.boardW - 58), rwY + rwH / 2 - 4);
+  ctx.fillText('ゴール', tx(S.boardW - 52), rwY + rwH / 2 - 3);
 
-  // スロープ口
-  drawSlopeEntry(ctx, tx, ty, sc, 10,            S.boardD * 0.45, '3F-L↓', '#4499ff', 'left');
-  drawSlopeEntry(ctx, tx, ty, sc, S.boardW - 10, S.boardD * 0.45, '（終端）', '#555588', 'right');
-
-  // 寸法
-  drawDimLine(ctx, rwX, rwY + rwH + 12, rwX + rwW, rwY + rwH + 12, `${S.boardW - 60}mm`, '#aaaaff');
+  drawSlopeEntry(ctx, tx, ty, sc, 10, S.boardD * 0.45, '3F-L↓', '#4499ff', 'left');
+  drawSlopeEntry(ctx, tx, ty, sc, S.boardW - 10, S.boardD * 0.45, '—', '#555588', 'right');
 }
 
 // ============================================================
-//  4F-R：スカイ・ポート（右ラック・高い段 1700mm）910×840mm
+//  4F-R：空港（シンプル）右・高 1700mm  910×840mm
 // ============================================================
 function drawFloor4FR(ctx, tx, ty, sc, bX, bY, bW, bD) {
-  ctx.fillStyle = '#0c0c2e';
+  ctx.fillStyle = '#0a0a24';
   ctx.fillRect(bX, bY, bW, bD);
 
-  // 板タイトル帯
-  ctx.fillStyle = 'rgba(60,60,140,0.3)';
+  ctx.fillStyle = 'rgba(40,40,90,0.3)';
   ctx.fillRect(bX, bY, bW, 26);
-  ctx.fillStyle = '#aaaaff';
+  ctx.fillStyle = '#99aacc';
   ctx.font = 'bold 10px Share Tech Mono';
   ctx.textAlign = 'center';
-  ctx.fillText('4F-R  右ラック・高い段  GL+1700mm  （910×840mm）', bX + bW / 2, bY + 17);
+  ctx.fillText('4F-R  空港（シンプル）  GL+1700mm  頂上', bX + bW / 2, bY + 17);
 
-  // ターミナルビル（右上）
-  ctx.fillStyle = 'rgba(60,60,180,0.5)';
-  roundRect(ctx, tx(650), ty(S.boardD * 0.1), 200 * sc, 120 * sc, 8);
-  ctx.fill();
-  ctx.strokeStyle = '#aaaaff';
-  ctx.lineWidth = 1.5;
-  roundRect(ctx, tx(650), ty(S.boardD * 0.1), 200 * sc, 120 * sc, 8);
-  ctx.stroke();
-  ctx.fillStyle = '#ccccff';
-  ctx.font = 'bold 10px Share Tech Mono';
-  ctx.textAlign = 'center';
-  ctx.fillText('ターミナルビル', tx(750), ty(S.boardD * 0.1) + 60 * sc);
-
-  // メインエプロン（上中）
-  ctx.fillStyle = 'rgba(80,80,200,0.18)';
-  ctx.fillRect(tx(30), ty(S.boardD * 0.15), tx(630) - tx(30), 160 * sc);
-  ctx.strokeStyle = '#8888cc';
+  // エプロン（シンプル）
+  ctx.fillStyle = 'rgba(55,55,100,0.22)';
+  ctx.fillRect(tx(30), ty(50), tx(880) - tx(30), 150 * sc);
+  ctx.strokeStyle = '#5577aa';
   ctx.lineWidth = 1;
-  ctx.strokeRect(tx(30), ty(S.boardD * 0.15), tx(630) - tx(30), 160 * sc);
-  ctx.fillStyle = '#aaaacc';
-  ctx.font = '10px Share Tech Mono';
+  ctx.strokeRect(tx(30), ty(50), tx(880) - tx(30), 150 * sc);
+  ctx.fillStyle = '#8899bb';
+  ctx.font = '9px Share Tech Mono';
   ctx.textAlign = 'center';
-  ctx.fillText('メインエプロン（駐機エリア）', tx(330), ty(S.boardD * 0.15) + 80 * sc);
+  ctx.fillText('エプロン', tx(455), ty(50) + 75 * sc);
 
-  // メイン滑走路（中央〜下）
-  const rwX = tx(30), rwY = ty(S.boardD * 0.65), rwW = (S.boardW - 60) * sc, rwH = 130 * sc;
-  ctx.fillStyle = '#18183a';
+  // 滑走路（シンプル）
+  const rwX = tx(30), rwY = ty(S.boardD * 0.62), rwW = (S.boardW - 60) * sc, rwH = 120 * sc;
+  ctx.fillStyle = '#18182e';
   ctx.fillRect(rwX, rwY, rwW, rwH);
-  ctx.strokeStyle = '#ccccff';
+  ctx.strokeStyle = '#99aacc';
   ctx.lineWidth = 1.5;
   ctx.strokeRect(rwX, rwY, rwW, rwH);
-  // 中央線
-  ctx.setLineDash([16, 12]);
+  ctx.setLineDash([14, 10]);
   ctx.strokeStyle = '#ffff44';
   ctx.lineWidth = 2;
   ctx.beginPath();
@@ -1028,30 +1200,38 @@ function drawFloor4FR(ctx, tx, ty, sc, bX, bY, bW, bD) {
   ctx.lineTo(rwX + rwW - 8, rwY + rwH / 2);
   ctx.stroke();
   ctx.setLineDash([]);
-  ctx.fillStyle = '#ccccff';
+  ctx.fillStyle = '#aabbcc';
   ctx.font = '10px Share Tech Mono';
-  ctx.textAlign = 'center';
-  ctx.fillText(`✈ メイン滑走路  ${S.boardW - 60}mm`, tx(455), rwY - 10);
+  ctx.fillText('滑走路', tx(455), rwY - 8);
 
-  // 最終ゴールライン
-  ctx.fillStyle = '#ff2222';
-  ctx.fillRect(tx(S.boardW - 50), rwY, 6, rwH);
-  ctx.fillStyle = '#ff4444';
-  ctx.font = 'bold 10px Share Tech Mono';
+  ctx.fillStyle = '#ff3333';
+  ctx.fillRect(tx(S.boardW - 45), rwY, 5, rwH);
+  ctx.fillStyle = '#ff5555';
+  ctx.font = 'bold 9px Share Tech Mono';
   ctx.textAlign = 'right';
-  ctx.fillText('最終ゴール！', tx(S.boardW - 60), rwY + rwH / 2 - 5);
+  ctx.fillText('最終ゴール', tx(S.boardW - 54), rwY + rwH / 2 - 3);
 
-  // スロープ口
-  drawSlopeEntry(ctx, tx, ty, sc, 10,            S.boardD * 0.45, '3F-R↓', '#4499ff', 'left');
-  drawSlopeEntry(ctx, tx, ty, sc, S.boardW - 10, S.boardD * 0.45, '（頂上）', '#ffff44', 'right');
-
-  // 寸法
-  drawDimLine(ctx, rwX, rwY + rwH + 12, rwX + rwW, rwY + rwH + 12, `${S.boardW - 60}mm`, '#ccccff');
+  drawSlopeEntry(ctx, tx, ty, sc, 10, S.boardD * 0.45, '3F-R↓', '#4499ff', 'left');
+  drawSlopeEntry(ctx, tx, ty, sc, S.boardW - 10, S.boardD * 0.45, '頂上', '#ffff66', 'right');
 }
 
 // ============================================================
 //  ユーティリティ
 // ============================================================
+// 回路方向矢印（三角形）
+function drawCircuitArrow(ctx, x, y, dir, size, color) {
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  switch (dir) {
+    case 'right': ctx.moveTo(x + size, y); ctx.lineTo(x - size, y - size * 0.6); ctx.lineTo(x - size, y + size * 0.6); break;
+    case 'down':  ctx.moveTo(x, y + size); ctx.lineTo(x - size * 0.6, y - size); ctx.lineTo(x + size * 0.6, y - size); break;
+    case 'left':  ctx.moveTo(x - size, y); ctx.lineTo(x + size, y - size * 0.6); ctx.lineTo(x + size, y + size * 0.6); break;
+    case 'up':    ctx.moveTo(x, y - size); ctx.lineTo(x - size * 0.6, y + size); ctx.lineTo(x + size * 0.6, y + size); break;
+  }
+  ctx.closePath();
+  ctx.fill();
+}
+
 function drawSlopeEntry(ctx, tx, ty, sc, xMm, yMm, label, color, side) {
   const x = tx(xMm), y = ty(yMm);
   const w = 12, h = S.slopeW * sc;
